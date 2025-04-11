@@ -1,0 +1,23 @@
+{
+  "groups": [
+    {
+      "name": "mcp.mediator",
+      "type": "io.github.makbn.mcp.mediator.spring.boot.McpMediatorProperties",
+      "sourceType": "io.github.makbn.mcp.mediator.spring.boot.McpMediatorProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "mcp.mediator.implementation-name",
+      "type": "java.lang.String",
+      "description": "The name of the MCP Mediator implementation to use.",
+      "sourceType": "io.github.makbn.mcp.mediator.spring.boot.McpMediatorProperties"
+    },
+    {
+      "name": "mcp.mediator.properties",
+      "type": "java.util.Map<java.lang.String,java.lang.String>",
+      "description": "Additional properties for the MCP Mediator implementation.",
+      "sourceType": "io.github.makbn.mcp.mediator.spring.boot.McpMediatorProperties"
+    }
+  ]
+} 

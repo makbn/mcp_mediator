@@ -1,0 +1,33 @@
+{
+  "groups": [
+    {
+      "name": "mcp.mediator.docker",
+      "type": "io.github.makbn.mcp.mediator.docker.spring.boot.DockerMcpMediatorProperties",
+      "sourceType": "io.github.makbn.mcp.mediator.docker.spring.boot.DockerMcpMediatorProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "mcp.mediator.docker.host",
+      "type": "java.lang.String",
+      "description": "The Docker host URI.",
+      "defaultValue": "unix:///var/run/docker.sock"
+    },
+    {
+      "name": "mcp.mediator.docker.cert-path",
+      "type": "java.lang.String",
+      "description": "The path to the Docker certificates."
+    },
+    {
+      "name": "mcp.mediator.docker.config-path",
+      "type": "java.lang.String",
+      "description": "The path to the Docker configuration."
+    },
+    {
+      "name": "mcp.mediator.docker.api-version",
+      "type": "java.lang.String",
+      "description": "The Docker API version to use.",
+      "defaultValue": "1.41"
+    }
+  ]
+} 
