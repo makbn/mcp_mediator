@@ -31,27 +31,21 @@ public class MediatorController {
         return "index";
     }
 
-    @PostMapping("/execute/{implementationName}/{requestType}")
+    @PostMapping("/execute/{implementationName}")
     public String executeRequest(
             @PathVariable String implementationName,
-            @PathVariable String requestType,
             @RequestParam Map<String, String> params,
             Model model) {
         try {
-            McpRequestHandler handler = requestHandlerService.findHandler(implementationName, requestType);
+            McpRequestHandler<?, ?> handler = requestHandlerService.findHandler(implementationName);
             if (handler == null) {
-                throw new IllegalArgumentException("No handler found for " + implementationName + ":" + requestType);
+                throw new IllegalArgumentException("No handler found for " + implementationName);
             }
 
             // Convert string parameters to appropriate types
-            Map<String, Object> convertedParams = new HashMap<>();
-            for (Map.Entry<String, String> entry : params.entrySet()) {
-                convertedParams.put(entry.getKey(), convertParameter(entry.getValue()));
-            }
+            Map<String, Object> convertedParams = new HashMap<>(params);
 
-            // Create and execute request
-            McpRequest request = handler.createRequest(convertedParams);
-            Object result = mediator.execute(request);
+            Object result = null;
             
             model.addAttribute("result", result);
             model.addAttribute("success", true);
@@ -60,26 +54,5 @@ public class MediatorController {
             model.addAttribute("success", false);
         }
         return index(model);
-    }
-
-    private Object convertParameter(String value) {
-        // Simple parameter type conversion
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-            return Boolean.parseBoolean(value);
-        }
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            // Not an integer
-        }
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            // Not a double
-        }
-        return value;
     }
 } 

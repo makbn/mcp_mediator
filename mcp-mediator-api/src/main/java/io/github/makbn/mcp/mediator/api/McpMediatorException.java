@@ -3,18 +3,14 @@ package io.github.makbn.mcp.mediator.api;
 /**
  * Exception class for MCP Mediator specific errors.
  */
-public class McpMediatorException extends Exception {
-    private final McpMediatorStatus status;
-
+public class McpMediatorException extends RuntimeException {
     /**
      * Creates a new McpMediatorException with the specified message and status.
      *
      * @param message the detail message
-     * @param status the mediator status when the exception occurred
      */
-    public McpMediatorException(String message, McpMediatorStatus status) {
+    public McpMediatorException(String message) {
         super(message);
-        this.status = status;
     }
 
     /**
@@ -22,19 +18,9 @@ public class McpMediatorException extends Exception {
      *
      * @param message the detail message
      * @param cause the cause of the exception
-     * @param status the mediator status when the exception occurred
      */
-    public McpMediatorException(String message, Throwable cause, McpMediatorStatus status) {
+    public McpMediatorException(String message, Throwable cause) {
         super(message, cause);
-        this.status = status;
     }
 
-    /**
-     * Gets the mediator status when the exception occurred.
-     *
-     * @return the mediator status
-     */
-    public McpMediatorStatus getStatus() {
-        return status;
-    }
 } 

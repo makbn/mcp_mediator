@@ -1,6 +1,5 @@
 package io.github.makbn.mcp.mediator.docker;
 
-import io.github.makbn.mcp.mediator.api.McpMediatorConfig;
 import io.github.makbn.mcp.mediator.api.McpMediatorException;
 
 import java.util.HashMap;

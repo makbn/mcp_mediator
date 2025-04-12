@@ -5,13 +5,6 @@ package io.github.makbn.mcp.mediator.api;
  * Implementations can register to receive notifications about mediator state changes and events.
  */
 public interface McpMediatorListener {
-    /**
-     * Called when the mediator's status changes.
-     *
-     * @param oldStatus the previous status
-     * @param newStatus the new status
-     */
-    void onStatusChange(McpMediatorStatus oldStatus, McpMediatorStatus newStatus);
 
     /**
      * Called when an error occurs in the mediator.

@@ -35,7 +35,7 @@ public class DockerMcpRequestHandler implements McpRequestHandler<DockerRequest>
     }
 
     @Override
-    public String getImplementationName() {
+    public String getName() {
         return "docker";
     }
 

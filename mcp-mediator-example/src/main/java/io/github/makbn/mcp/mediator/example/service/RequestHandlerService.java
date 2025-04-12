@@ -19,19 +19,18 @@ public class RequestHandlerService {
         this.mediator = mediator;
     }
 
-    public List<McpRequestHandler> getAllHandlers() {
+    public List<McpRequestHandler<?, ?>> getAllHandlers() {
         return mediator.getHandlers();
     }
 
-    public Map<String, List<McpRequestHandler>> getHandlersByImplementation() {
+    public Map<String, List<McpRequestHandler<?, ?>>> getHandlersByImplementation() {
         return mediator.getHandlers().stream()
-                .collect(Collectors.groupingBy(McpRequestHandler::getImplementationName));
+                .collect(Collectors.groupingBy(McpRequestHandler::getName));
     }
 
-    public McpRequestHandler findHandler(String implementationName, String requestType) {
+    public McpRequestHandler<?, ?> findHandler(String implementationName) {
         return mediator.getHandlers().stream()
-                .filter(handler -> handler.getImplementationName().equals(implementationName) 
-                        && handler.getRequestType().equals(requestType))
+                .filter(handler -> handler.getName().equals(implementationName))
                 .findFirst()
                 .orElse(null);
     }

@@ -1,6 +1,6 @@
 package io.github.makbn.mcp.mediator.api;
 
-import javax.xml.transform.Result;
+import java.util.Properties;
 
 /**
  * Base interface for MCP request handlers.
@@ -8,20 +8,14 @@ import javax.xml.transform.Result;
  *
  * @param <T> the type of request this handler can process
  */
-public interface McpRequestHandler<T extends McpRequest> {
-    /**
-     * Gets the type of request this handler can process.
-     *
-     * @return the request type
-     */
-    String getRequestType();
+public interface McpRequestHandler<T extends McpRequest<R>, R> {
 
     /**
      * Gets the implementation name this handler is for.
      *
      * @return the implementation name
      */
-    String getImplementationName();
+    String getName();
 
     /**
      * Checks if this handler can process the given request.
@@ -38,5 +32,12 @@ public interface McpRequestHandler<T extends McpRequest> {
      * @return the result of processing the request
      * @throws McpMediatorException if processing fails
      */
-    Result handle(T request) throws McpMediatorException;
+    R handle(T request) throws McpMediatorException;
+
+    Class<T> getRequestClass();
+
+
+    default Properties getProperties() {
+        return new Properties();
+    }
 } 
