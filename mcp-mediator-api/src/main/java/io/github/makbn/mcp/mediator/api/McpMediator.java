@@ -1,11 +1,15 @@
 package io.github.makbn.mcp.mediator.api;
 
 
+import jakarta.annotation.Nonnull;
+
 import java.util.List;
 
 /**
  * Main interface for MCP Mediator implementations.
  * This interface defines the core functionality that all MCP mediator implementations must provide.
+ *
+ * @author Matt Akbarian
  */
 public interface McpMediator {
 
@@ -21,9 +25,10 @@ public interface McpMediator {
      *
      * @param handler the handler to register
      */
-    void registerHandler(McpRequestHandler<?, ?> handler);
+    <T extends McpMediatorRequest<R>, R> void registerHandler(@Nonnull McpMediatorRequestHandler<T, R> handler);
 
-    List<McpRequestHandler<?, ?>> getHandlers();
+    @SuppressWarnings("rawtypes")
+    List<McpMediatorRequestHandler> getHandlers();
     /**
      * Executes a request using the appropriate handler.
      *
@@ -31,5 +36,5 @@ public interface McpMediator {
      * @return the result of executing the request
      * @throws McpMediatorException if execution fails
      */
-    <T extends McpRequest<R>,  R> R execute(T request) throws McpMediatorException;
+    <T extends McpMediatorRequest<R>,  R> R execute(T request) throws McpMediatorException;
 } 

@@ -21,6 +21,8 @@
         <spring-ai.version>1.0.0-M7</spring-ai.version>
         <slf4j.version>2.0.17</slf4j.version>
         <lombok.version>1.18.38</lombok.version>
+        <mcp-bom.version>0.9.0</mcp-bom.version>
+        <jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
     </properties>
 
     <modules>
@@ -31,7 +33,6 @@
         <module>mcp-mediator-implementation-docker</module>
         <module>mcp-mediator-implementation-dropbox</module>
         <module>mcp-mediator-example</module>
-        <module>mcp-mediator-implementation-dropbox</module>
     </modules>
 
     <dependencyManagement>
@@ -40,6 +41,13 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-framework-bom</artifactId>
                 <version>${spring.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp-bom</artifactId>
+                <version>${mcp-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -73,16 +81,6 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
-                    <configuration>
-                        <source>${maven.compiler.source}</source>
-                        <target>${maven.compiler.target}</target>
-                    </configuration>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
                     <configuration>
                         <annotationProcessorPaths>
                             <path>
@@ -91,6 +89,8 @@
                                 <version>1.18.38</version>
                             </path>
                         </annotationProcessorPaths>
+                        <source>${maven.compiler.source}</source>
+                        <target>${maven.compiler.target}</target>
                     </configuration>
                 </plugin>
             </plugins>

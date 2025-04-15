@@ -11,8 +11,12 @@ import io.github.makbn.mcp.mediator.dropbox.request.result.DropboxAccountResult;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Properties;
+
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class DropboxMcpRequestHandler implements McpRequestHandler<AbstractDropboxRequest, AbstractDropBoxResult<?>> {
+public class DropboxMcpRequestHandler implements McpMediatorRequestHandler<AbstractDropboxRequest, AbstractDropBoxResult<?>> {
     private static final String REQUEST_HANDLER_NAME = "dropbox-mcp-request-handler";
     private static final String ACCESS_TOKEN_PARAM = "mcp.mediator.implementation.dropbox.access-token";
 
@@ -38,15 +42,25 @@ public class DropboxMcpRequestHandler implements McpRequestHandler<AbstractDropb
             }
             return null;
         }catch (DbxException e) {
-            throw  new McpMediatorException(REQUEST_HANDLER_NAME, e, McpMediatorStatus.ERROR);
+            throw  new McpMediatorException(REQUEST_HANDLER_NAME, e);
         }
     }
 
+
     @Override
-    public boolean canHandle(McpRequest request) {
+    public Properties getProperties() {
+        return McpMediatorRequestHandler.super.getProperties();
+    }
+
+    @Override
+    public boolean canHandle(McpMediatorRequest<?> request) {
         return request instanceof AbstractDropboxRequest;
     }
 
+    @Override
+    public Collection<Class<? extends AbstractDropboxRequest>> getAllSupportedRequestClass() {
+        return List.of(DropboxAccountInformationRequest.class);
+    }
 
 
 }

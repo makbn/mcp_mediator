@@ -1,5 +1,6 @@
 package io.github.makbn.mcp.mediator.api;
 
+import java.util.Collection;
 import java.util.Properties;
 
 /**
@@ -7,8 +8,10 @@ import java.util.Properties;
  * Each specific MCP implementation should implement this interface for their request types.
  *
  * @param <T> the type of request this handler can process
+ *
+ * @author Matt Akbarian
  */
-public interface McpRequestHandler<T extends McpRequest<R>, R> {
+public interface McpMediatorRequestHandler<T extends McpMediatorRequest<R>, R> {
 
     /**
      * Gets the implementation name this handler is for.
@@ -23,7 +26,10 @@ public interface McpRequestHandler<T extends McpRequest<R>, R> {
      * @param request the request to check
      * @return true if this handler can process the request, false otherwise
      */
-    boolean canHandle(McpRequest request);
+    boolean canHandle(McpMediatorRequest<?> request);
+
+
+    Collection<Class<? extends T>> getAllSupportedRequestClass();
 
     /**
      * Processes the given request.
@@ -34,10 +40,10 @@ public interface McpRequestHandler<T extends McpRequest<R>, R> {
      */
     R handle(T request) throws McpMediatorException;
 
-    Class<T> getRequestClass();
-
 
     default Properties getProperties() {
         return new Properties();
     }
+
+
 } 

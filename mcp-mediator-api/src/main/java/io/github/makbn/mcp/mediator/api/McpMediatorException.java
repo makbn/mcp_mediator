@@ -2,6 +2,8 @@ package io.github.makbn.mcp.mediator.api;
 
 /**
  * Exception class for MCP Mediator specific errors.
+ *
+ * @author Matt Akbarian
  */
 public class McpMediatorException extends RuntimeException {
     /**

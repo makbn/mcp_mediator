@@ -14,21 +14,35 @@
     <name>MCP Mediator Docker Implementation</name>
     <description>Docker implementation for MCP Mediator</description>
 
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <docker-java.version>3.5.0</docker-java.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.github.makbn</groupId>
             <artifactId>mcp-mediator-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>com.github.docker-java</groupId>
             <artifactId>docker-java-core</artifactId>
-            <version>3.3.4</version>
+            <version>${docker-java.version}</version>
         </dependency>
+
         <dependency>
             <groupId>com.github.docker-java</groupId>
             <artifactId>docker-java-transport-httpclient5</artifactId>
-            <version>3.3.4</version>
+            <version>${docker-java.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
 </project> 

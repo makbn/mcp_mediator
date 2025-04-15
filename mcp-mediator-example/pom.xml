@@ -45,12 +45,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>mcp-mediator-implementation-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>${logback.version}</version>
@@ -80,6 +74,8 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
+                    <mainClass>io.github.makbn.mcp.mediator.example.DefaultMcpMediatorStdioExample</mainClass>
+                    <layout>JAR</layout>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
@@ -87,6 +83,13 @@
                         </exclude>
                     </excludes>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

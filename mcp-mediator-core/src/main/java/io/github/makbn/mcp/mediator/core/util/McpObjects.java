@@ -1,7 +1,11 @@
-package io.github.makbn.mcp.mediator.api.util;
+package io.github.makbn.mcp.mediator.core.util;
 
 
 import io.github.makbn.mcp.mediator.api.McpMediatorException;
+import lombok.SneakyThrows;
+
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class McpObjects {
 
@@ -17,8 +21,13 @@ public final class McpObjects {
             try {
                 return  (T) object;
             }catch (ClassCastException e) {
-                throw new McpMediatorException("Failed to cast the result", e, McpMediatorStatus.ERROR);
+                throw new McpMediatorException("Failed to cast the result", e);
             }
         }
+    }
+
+    @SneakyThrows
+    public static <T, R> R sneakyOperation(Function<T, R> writeValueAsString, T schema) {
+        return writeValueAsString.apply(schema);
     }
 }

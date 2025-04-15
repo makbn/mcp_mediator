@@ -26,12 +26,19 @@
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-mcp</artifactId>
-            <version>${spring-ai.version}</version>
+            <groupId>io.modelcontextprotocol.sdk</groupId>
+            <artifactId>mcp</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-module-jsonSchema -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-jsonSchema</artifactId>
+            <version>2.18.3</version>
+        </dependency>
     </dependencies>
 </project> 

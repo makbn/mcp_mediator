@@ -3,9 +3,10 @@ package io.github.makbn.mcp.mediator.api;
 /**
  * Interface for listening to MCP Mediator events.
  * Implementations can register to receive notifications about mediator state changes and events.
+ *
+ * @author Matt Akbarian
  */
 public interface McpMediatorListener {
-
     /**
      * Called when an error occurs in the mediator.
      *
@@ -18,12 +19,14 @@ public interface McpMediatorListener {
      *
      * @param message the received message
      */
-    void onMessageReceived(String message);
+    void onRequestReceived(String message);
 
     /**
      * Called when the mediator sends a message.
      *
      * @param message the sent message
      */
-    void onMessageSent(String message);
+    void onResultSent(String message);
+
+    void onResultGenerated(String message);
 } 

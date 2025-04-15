@@ -1,58 +1,90 @@
 package io.github.makbn.mcp.mediator.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.makbn.mcp.mediator.api.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.modelcontextprotocol.server.McpServer;
+import io.modelcontextprotocol.server.McpServerFeatures;
+import io.modelcontextprotocol.server.McpSyncServer;
+import io.modelcontextprotocol.server.transport.StdioServerTransportProvider;
+import io.modelcontextprotocol.spec.McpSchema;
+import lombok.AccessLevel;
+import lombok.NonNull;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import lombok.extern.slf4j.Slf4j;
 
-
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * Abstract base implementation of the MCP Mediator.
+ * Default base implementation of the MCP Mediator for MCP Stdio.
  * Provides common functionality for request handling and state management.
+ *
+ * @author Matt Akbarian
  */
-public class DefaultMcpMediator implements io.github.makbn.mcp.mediator.api.McpMediator {
-    private static final Logger LOG = LoggerFactory.getLogger(DefaultMcpMediator.class);
+@Slf4j
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class DefaultMcpMediator implements McpMediator {
+    @SuppressWarnings("rawtypes")
+    private final Map<Class<? extends McpMediatorRequest<?>>, McpMediatorRequestHandler> handlers = new ConcurrentHashMap<>();
 
+    McpMediatorConfigurationSpec configuration;
 
-    private final List<McpMediatorListener> listeners = new CopyOnWriteArrayList<>();
-    private final Map<Class<? extends McpRequest<?>>, McpRequestHandler<?, ?>> handlers = new ConcurrentHashMap<>();
+    @NonFinal
+    McpSyncServer mcpSyncServer;
+
+    public DefaultMcpMediator() {
+        this(McpMediatorConfiguration.builder().withDefaults().build());
+    }
+
+    public DefaultMcpMediator(@NonNull McpMediatorConfigurationSpec configuration) {
+        this.configuration = configuration;
+    }
+
 
     @Override
     public void initialize() throws McpMediatorException {
-        LOG.info("Initializing MCP Mediator");
+        log.info("Initializing MCP Mediator");
         try {
+            StdioServerTransportProvider stdioServerTransportProvider = new StdioServerTransportProvider();
+            mcpSyncServer = McpServer.sync(stdioServerTransportProvider)
+                    .serverInfo(configuration.getServerName(), configuration.getServerVersion())
+                    .capabilities(McpSchema.ServerCapabilities.builder()
+                            .tools(configuration.isToolsEnabled())
+                            .build())
+                    .build();
 
-            LOG.debug("MCP Mediator initialized successfully");
+            handlers.forEach((mcpMediatorRequestType, handler) -> {
+                McpRequestAdapter adapter = McpRequestAdapter.builder().request(mcpMediatorRequestType).build();
+                mcpSyncServer.addTool(new McpServerFeatures.SyncToolSpecification(defineMcpTool(adapter),
+                        (mcpSyncServerExchange, stringObjectMap) -> {
+                            try {
+                                return new McpSchema.CallToolResult(execute(stringObjectMap, mcpMediatorRequestType), false);
+                            } catch (Exception e) {
+                                return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent(e.getMessage())), true);
+                            }
+                        }));
+            });
+            log.debug("MCP Mediator initialized successfully");
         } catch (Exception e) {
             throw new McpMediatorException("Failed to initialize MCP Mediator", e);
         }
     }
 
     @Override
-    public void registerListener(McpMediatorListener listener) {
-        listeners.add(listener);
+    public <T extends McpMediatorRequest<R>, R> void registerHandler(@NonNull McpMediatorRequestHandler<T, R> handler) {
+        handler.getAllSupportedRequestClass().forEach(reqClass -> handlers.put(reqClass, handler));
     }
 
+    @NonNull
     @Override
-    public void unregisterListener(McpMediatorListener listener) {
-        listeners.remove(listener);
+    @SuppressWarnings("rawtypes")
+    public List<McpMediatorRequestHandler> getHandlers() {
+        return handlers.values().stream().toList();
     }
-
-    @Override
-    public void registerHandler(McpRequestHandler<?, ?> handler) {
-        handlers.put(handler.getRequestClass(), handler);
-    }
-
-    @Override
-    public void unregisterHandler(McpRequestHandler<?, ?> handler) {
-        handlers.remove(handler);
-        LOG.info("Unregistered handler for {} requests",  handler.getName());
-    }
-
 
     /**
      * Finds a handler that can process the given request.
@@ -60,26 +92,48 @@ public class DefaultMcpMediator implements io.github.makbn.mcp.mediator.api.McpM
      * @param request the request to find a handler for
      * @return the handler that can process the request, or null if none found
      */
-    protected McpRequestHandler<?, ?> findHandler(McpRequest<?> request) {
-        return handlers.values()
-                .stream()
-            .filter(handler -> handler.canHandle(request))
-            .findFirst()
-            .orElse(null);
+    @SuppressWarnings("unchecked")
+    private McpMediatorRequestHandler<?, ?> findHandler(@NonNull McpMediatorRequest<?> request) {
+        return handlers.values().stream().filter(handler
+                -> handler.canHandle(request)).findFirst().orElse(null);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends McpRequest<R>, R> R execute(T request) throws McpMediatorException {
-        McpRequestHandler<T, R> handler = (McpRequestHandler<T, R>) findHandler(request);
+    public <T extends McpMediatorRequest<R>, R> R execute(T request) throws McpMediatorException {
+        McpMediatorRequestHandler<T, R> handler = (McpMediatorRequestHandler<T, R>) findHandler(request);
         if (handler == null) {
-            throw new McpMediatorException(String.format("No handler found for request type %s", request.getMethod()));
+            throw new McpMediatorException(String.format("No handler found for request type %s", request));
         }
 
         try {
             return handler.handle(request);
         } catch (Exception e) {
-            throw new McpMediatorException(String.format("Failed to execute request %s", request.getMethod()), e);
+            throw new McpMediatorException(String.format("Failed to execute request %s", request), e);
         }
+    }
+
+    @NonNull
+    private McpSchema.Tool defineMcpTool(@NonNull McpRequestAdapter adapter) {
+        return new McpSchema.Tool(adapter.getMethod(), adapter.getDescription(), adapter.getSchema());
+    }
+
+    @NonNull
+    private <T extends McpMediatorRequest<R>, R> List<McpSchema.Content> execute(
+            @NonNull Map<String, Object> mcpClientRequestParameters, @NonNull Class<T> mcpMediatorRequestType) {
+
+        R mcpMediatorResult;
+        try {
+            T mcpMediatorRequest = new ObjectMapper().convertValue(mcpClientRequestParameters, mcpMediatorRequestType);
+            mcpMediatorResult = execute(mcpMediatorRequest);
+            return List.of(new McpSchema.TextContent(serialize(mcpMediatorResult)));
+        } catch (IOException e) {
+            throw new McpMediatorException("Failed to execute request", e);
+        }
+    }
+
+    @NonNull
+    private String serialize(@NonNull Object object) throws JsonProcessingException {
+        return ((ObjectMapper) configuration.getSerializer()).writeValueAsString(object);
     }
 } 
