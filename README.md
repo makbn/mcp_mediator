@@ -1,27 +1,34 @@
 # MCP Mediator
 
-A modular MCP mediator framework compatible with Spring Framework and Spring Boot. This project provides a flexible and extensible way to integrate with various MCP (Message Control Protocol) servers.
+A Java-based implementation of the Model Context Protocol (MCP) mediator, providing seamless integration between MCP clients and servers. 
+This project enables efficient communication and tool execution in the MCP ecosystem.
+
+## Overview
+
+The MCP Mediator implements the Model Context Protocol specification, providing a robust framework for:
+- Handling MCP requests and responses
+- Managing tool execution
+- Supporting various transport mechanisms
+- Integrating with Spring Framework and Spring Boot
 
 ## Features
 
-- Modular architecture with clear separation of concerns
-- Spring Framework and Spring Boot integration
-- Extensible API for implementing custom mediators
-- Support for multiple MCP server implementations
-- Comprehensive documentation and examples
+- Support for stdio transport
+- Extensible request handling system
+- Spring Framework and Spring Boot integration (WIP)
+- Comprehensive error handling (WIP)
+- Configurable server capabilities
+- Support for multiple tool implementations
 
 ## Modules
 
 - `mcp-mediator-api`: Core API interfaces and contracts
-- `mcp-mediator-core`: Base implementation and common functionality
-- `mcp-mediator-spring`: Spring Framework integration
-- `mcp-mediator-spring-boot-starter`: Spring Boot auto-configuration
-- Implementation modules for various MCP servers:
-  - AWS
-  - Azure
-  - Google Cloud Platform
-  - Kubernetes
-  - Docker
+- `mcp-mediator-core`: Core implementation and common functionality
+- `mcp-mediator-spring`: Spring Framework and Spring AI integration
+- `mcp-mediator-spring-boot-starter`: Spring Boot auto-configuration to generate MCP server automatically for the available endpoints
+- Implementation modules for various services:
+  - `mcp-mediator-implementation-docker`: Docker service integration (WIP)
+  - `mcp-mediator-implementation-dropbox`: Dropbox service integration (WIP)
 
 ## Getting Started
 
@@ -31,99 +38,24 @@ A modular MCP mediator framework compatible with Spring Framework and Spring Boo
 - Maven 3.6 or later
 - Spring Boot 3.2.2 or later (for Spring Boot integration)
 
-### Installation
+## Architecture
 
-Add the following dependency to your Spring Boot project:
+The MCP Mediator follows the Model Context Protocol architecture:
 
-```xml
-<dependency>
-    <groupId>io.github.makbn</groupId>
-    <artifactId>mcp-mediator-spring-boot-starter</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</dependency>
-```
+1. **Protocol Layer**
+   - Handles message framing
+   - Manages request/response patterns
+   - Implements JSON-RPC 2.0
 
-### Configuration
+2. **Transport Layer**
+   - Supports stdio transport
+   - Handles message serialization/deserialization
+   - Manages connection lifecycle
 
-Add the following properties to your `application.yml` or `application.properties`:
-
-```yaml
-mcp:
-  mediator:
-    implementation-name: aws  # or azure, gcp, kubernetes, docker
-    properties:
-      # Implementation-specific properties
-```
-
-### Usage
-
-```java
-@RestController
-public class MyController {
-    private final McpMediator mediator;
-
-    public MyController(McpMediator mediator) {
-        this.mediator = mediator;
-    }
-
-    @PostMapping("/send")
-    public void sendMessage(@RequestBody String message) {
-        // Use the mediator to send messages
-    }
-}
-```
-
-## Implementation Modules
-
-### AWS Implementation
-
-```xml
-<dependency>
-    <groupId>io.github.makbn</groupId>
-    <artifactId>mcp-mediator-implementation-aws</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</dependency>
-```
-
-### Azure Implementation
-
-```xml
-<dependency>
-    <groupId>io.github.makbn</groupId>
-    <artifactId>mcp-mediator-implementation-azure</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</dependency>
-```
-
-### Google Cloud Platform Implementation
-
-```xml
-<dependency>
-    <groupId>io.github.makbn</groupId>
-    <artifactId>mcp-mediator-implementation-gcp</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</dependency>
-```
-
-### Kubernetes Implementation
-
-```xml
-<dependency>
-    <groupId>io.github.makbn</groupId>
-    <artifactId>mcp-mediator-implementation-kubernetes</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</dependency>
-```
-
-### Docker Implementation
-
-```xml
-<dependency>
-    <groupId>io.github.makbn</groupId>
-    <artifactId>mcp-mediator-implementation-docker</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-</dependency>
-```
+3. **Tool Layer**
+   - Implements tool execution
+   - Handles request routing
+   - Manages tool capabilities
 
 ## Contributing
 
@@ -131,4 +63,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. # mcp_mediator
+This project is licensed under the GPL3 License - see the [LICENSE](https://choosealicense.com/licenses/gpl-3.0/) file for details.
