@@ -59,7 +59,7 @@ The MCP Mediator follows the Model Context Protocol architecture:
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request. [Read this first](CONTRIBUTING.md)!
 
 ## License
 
