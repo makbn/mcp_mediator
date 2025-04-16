@@ -36,8 +36,14 @@ public @interface McpTool {
          */
         boolean destructiveHint() default false;
 
+        /**
+         * If true, repeated calls with same args have no additional effect.
+         */
         boolean idempotentHint() default false;
 
+        /**
+         * If true, tool interacts with external entities.
+         */
         boolean openWorldHint() default false;
     }
 

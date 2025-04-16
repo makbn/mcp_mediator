@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @McpTool(name = "get_all_containers",
         description = "get all docker containers. It can include the stopped one by providing load all containers as true",
-        schema = AllDockerContainers.class,
+        schema = AllDockerContainersMcpRequest.class,
         annotations = {
         @McpTool.McpAnnotation(
                 title = "calling this tool without without load all container only returns currently running docker" +
@@ -17,6 +17,6 @@ import lombok.Getter;
                 // repeated calls have not additional effects
                 idempotentHint = true)
         })
-public class AllDockerContainers extends AbstractDockerRequest{
+public class AllDockerContainersMcpRequest extends AbstractDockerMcpRequest {
     boolean loadAllContainers;
 }

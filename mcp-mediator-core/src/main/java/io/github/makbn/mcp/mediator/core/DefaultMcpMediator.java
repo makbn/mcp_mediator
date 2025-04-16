@@ -44,7 +44,11 @@ public class DefaultMcpMediator implements McpMediator {
         this.configuration = configuration;
     }
 
-
+    /**
+     * Initializes the mediator, creating the internal MCP server and registering all known tools.
+     *
+     * @throws McpMediatorException if initialization fails
+     */
     @Override
     public void initialize() throws McpMediatorException {
         log.info("Initializing MCP Mediator");
@@ -70,10 +74,19 @@ public class DefaultMcpMediator implements McpMediator {
             });
             log.debug("MCP Mediator initialized successfully");
         } catch (Exception e) {
+            mcpSyncServer.closeGracefully();
+            mcpSyncServer = null;
             throw new McpMediatorException("Failed to initialize MCP Mediator", e);
         }
     }
 
+    /**
+     * Registers a request handler capable of handling one or more MCP request types.
+     *
+     * @param handler the request handler to register
+     * @param <T>     the request type
+     * @param <R>     the result type
+     */
     @Override
     public <T extends McpMediatorRequest<R>, R> void registerHandler(@NonNull McpMediatorRequestHandler<T, R> handler) {
         handler.getAllSupportedRequestClass().forEach(reqClass -> handlers.put(reqClass, handler));

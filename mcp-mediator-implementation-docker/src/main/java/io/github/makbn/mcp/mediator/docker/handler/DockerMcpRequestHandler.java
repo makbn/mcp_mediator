@@ -9,8 +9,8 @@ import com.github.dockerjava.core.DockerClientImpl;
 import io.github.makbn.mcp.mediator.api.McpMediatorException;
 import io.github.makbn.mcp.mediator.api.McpMediatorRequest;
 import io.github.makbn.mcp.mediator.api.McpMediatorRequestHandler;
-import io.github.makbn.mcp.mediator.docker.request.AbstractDockerRequest;
-import io.github.makbn.mcp.mediator.docker.request.AllDockerContainers;
+import io.github.makbn.mcp.mediator.docker.request.AbstractDockerMcpRequest;
+import io.github.makbn.mcp.mediator.docker.request.AllDockerContainersMcpRequest;
 import io.github.makbn.mcp.mediator.docker.request.result.DockerMcpResult;
 
 import java.util.Collection;
@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author Matt Akbarian
  */
-public class DockerMcpRequestHandler implements McpMediatorRequestHandler<AbstractDockerRequest, DockerMcpResult> {
+public class DockerMcpRequestHandler implements McpMediatorRequestHandler<AbstractDockerMcpRequest, DockerMcpResult> {
 
     private static final String REQUEST_HANDLER_NAME = "docker-mcp-request-handler";
     private final DockerClient dockerClient;
@@ -40,24 +40,25 @@ public class DockerMcpRequestHandler implements McpMediatorRequestHandler<Abstra
 
     @Override
     public boolean canHandle(McpMediatorRequest<?> request) {
-        return request instanceof AbstractDockerRequest;
+        return request instanceof AbstractDockerMcpRequest;
     }
 
     @Override
-    public Collection<Class<? extends AbstractDockerRequest>> getAllSupportedRequestClass() {
-        return List.of(AllDockerContainers.class);
+    public Collection<Class<? extends AbstractDockerMcpRequest>> getAllSupportedRequestClass() {
+        return List.of(AllDockerContainersMcpRequest.class);
     }
 
     @Override
-    public DockerMcpResult handle(AbstractDockerRequest request) throws McpMediatorException {
+    public DockerMcpResult handle(AbstractDockerMcpRequest request) throws McpMediatorException {
         try {
-           if (request instanceof AllDockerContainers allDockerContainers) {
+           if (request instanceof AllDockerContainersMcpRequest allDockerContainers) {
                return DockerMcpResult.create()
                        .addResult("list_of_containers", getAllContainers(allDockerContainers));
            }
 
-           return DockerMcpResult.create()
-                   .addResult("error", "Unknown request type: " + request.getClass().getName());
+           throw new UnsupportedOperationException("Not implemented yet");
+        } catch (UnsupportedOperationException propagatedException) {
+            throw propagatedException;
         } catch (Exception e) {
             throw new McpMediatorException(
                 String.format("Failed to execute Docker tool: %s", request),
@@ -65,7 +66,7 @@ public class DockerMcpRequestHandler implements McpMediatorRequestHandler<Abstra
         }
     }
 
-    private List<Container> getAllContainers(AllDockerContainers request) {
+    private List<Container> getAllContainers(AllDockerContainersMcpRequest request) {
         ListContainersCmd cmd = dockerClient.listContainersCmd();
         cmd.withShowAll(request.isLoadAllContainers());
         return cmd.exec();
