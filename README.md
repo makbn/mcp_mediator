@@ -13,12 +13,22 @@ The MCP Mediator implements the Model Context Protocol specification, providing 
 
 ## Features
 
-- Support for stdio transport
+Ready:
+- Support for stdio/sse transport
 - Extensible request handling system
-- Spring Framework and Spring Boot integration (WIP)
-- Comprehensive error handling (WIP)
 - Configurable server capabilities
 - Support for multiple tool implementations
+
+Work In Progress:
+- Spring Framework and Spring Boot integration
+- Comprehensive error handling
+- Support for proxying multiple MCP servers
+- Docker Implementation
+- Dropbox Implementation
+
+Planned:
+- Generate MCP Server for existing Spring `Controllers` and mediate request between MCP client and controllers
+- Generate MCP Server for existing OpenAPI specification and generate MCP `Tool` for the APIs and delegate the requests  
 
 ## Modules
 
@@ -71,10 +81,11 @@ $ View result from get_all_containers
 ```
 
 ```json
-{
+
   {
-     `loadAllContainers`: true
+     "loadAllContainers": true
   }
+          
   {
     "containers": [
         {
@@ -90,7 +101,7 @@ $ View result from get_all_containers
          // ...
     ]
   }
-}
+
 ```
   
 > Here are all your Docker containers, including both running and non-running containers:
@@ -128,7 +139,7 @@ $ View result from get_all_containers
 
 -----
 
-The `DockerMcpRequestHandler` is still under development. All the existing MCP severs, including official and non-official `docker-mcp` MCP servers, can be used by delegating the requst using mediator by implementing a delegator `McpMediatorRequestHandler` that receives a request and passes that to the remote MCP sever.
+The `DockerMcpRequestHandler` is still under development. All the existing MCP severs, including official and non-official `docker-mcp` MCP servers, can be used by delegating the request using mediator by implementing a delegator `McpMediatorRequestHandler` that receives a request and passes that to the remote MCP sever.
 
 ## Architecture
 
@@ -151,8 +162,8 @@ The MCP Mediator follows the Model Context Protocol architecture:
      
 4. **Mediate Layer**
    - Registers available request handlers
-   - Converts `Tool` inovocation to *MCP Mediator Request*
-   - Deletegates the generated *MCP Mediator Request* to the proper *MCP Mediator Request Handler*
+   - Converts `Tool` invocation to *MCP Mediator Request*
+   - Delegates the generated *MCP Mediator Request* to the proper *MCP Mediator Request Handler*
    - Passes the request execution result back 
 
 ## Contributing
