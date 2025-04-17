@@ -50,8 +50,8 @@ mediator.registerHandler(new DockerMcpRequestHandler());
 mediator.initialize();
 
 ```
-This mediator runs a STDIO MCP server that handlers delegates requests from MCP client  (e.g. Claude Desktop app) to
-the `DockerMcpRequestHandler`. A simple example query :
+This mediator runs a STDIO MCP server with handlers and delegates requests from MCP client  (e.g. Claude Desktop) to
+the registered handlers, in this case `DockerMcpRequestHandler`. A simple example query:
 
 ```text
 show all my docker containers
@@ -61,7 +61,7 @@ and MCP Client (Claude Desktop) interaction with the Mediator:
  <summary>I'll help you see all your Docker containers. Let me retrieve that information for you. </summary>
 
 ```
-$ View result from get_all_containers
+> $ View result from get_all_containers
 ```
 
 ```json
@@ -84,7 +84,7 @@ $ View result from get_all_containers
   ]
 }
 ```
-Here are all your Docker containers, including both running and non-running containers:
+> Here are all your Docker containers, including both running and non-running containers:
 
 <table>
   <thead>
@@ -112,9 +112,15 @@ Here are all your Docker containers, including both running and non-running cont
       </tr>
   </tbody>
 </table>
-You have 10 containers total: 6 running, 2 exited, and 1 paused.
+
+> You have 10 containers total: 6 running, 2 exited, and 1 paused.
+
 </details>
 
+-----
+
+The `DockerMcpRequestHandler` is still under development. All the existing MCP severs, including official docker_mcp, can be used by delegating the requst
+by implementing a delegator request handler that receives a request and passes that to the remote MCP sever.
 
 ## Architecture
 
