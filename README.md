@@ -84,6 +84,8 @@ $ View result from get_all_containers
   ]
 }
 ```
+Here are all your Docker containers, including both running and non-running containers:
+
 <table>
   <thead>
       <tr>
