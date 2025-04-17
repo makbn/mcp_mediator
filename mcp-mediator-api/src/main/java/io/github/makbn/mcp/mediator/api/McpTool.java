@@ -63,7 +63,7 @@ public @interface McpTool {
     Class<?> schema();
 
     /**
-     * @return Optional hints about tool behavior
+     * @return Optional hints about tool behavior.
      */
     McpAnnotation[] annotations() default {};
 }

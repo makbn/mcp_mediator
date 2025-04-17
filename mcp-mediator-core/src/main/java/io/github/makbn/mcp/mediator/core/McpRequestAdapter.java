@@ -81,8 +81,10 @@ public class McpRequestAdapter {
     public String getSchema() {
         return Optional.ofNullable(request.getDeclaredAnnotation(McpTool.class))
                 .map(McpTool::schema)
-                .map(schema -> McpObjects.sneakyOperation((SneakyFunction<Class<?>, JsonSchema>) schemaGenerator::generateSchema, schema))
-                .map(schema -> McpObjects.sneakyOperation((SneakyFunction<JsonSchema, String>) objectMapper::writeValueAsString, schema))
+                .map(schema -> McpObjects.sneakyOperation(
+                        (SneakyFunction<Class<?>, JsonSchema>) schemaGenerator::generateSchema, schema))
+                .map(schema -> McpObjects.sneakyOperation(
+                        (SneakyFunction<JsonSchema, String>) objectMapper::writeValueAsString, schema))
                 .orElseThrow(() -> new McpMediatorException(String.format(ERROR, McpTool.class.getSimpleName())));
     }
 }

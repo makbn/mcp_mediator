@@ -6,6 +6,8 @@ import io.github.makbn.mcp.mediator.docker.request.result.DockerMcpResult;
 /**
  * Docker request that follows the Model Context Protocol specification.
  * Represents a request to execute a Docker tool with its parameters.
+ *
+ * @author Matt Akbarian
  */
 public abstract class AbstractDockerMcpRequest implements McpMediatorRequest<DockerMcpResult> {
 
