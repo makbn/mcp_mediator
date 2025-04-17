@@ -42,12 +42,12 @@ All the examples are available under `mcp-mediator-exmple` module. It's still a 
 ### Default MCP Mediator 
 To create a MCP Mediator with STDIO transport:
 ```java
-      DefaultMcpMediator mediator = new DefaultMcpMediator(McpMediatorConfigurationBuilder.builder()
-                .createDefault()
-                .serverName(MY_EXAMPLE_MCP_SERVER_STDIO)
-                .build());
-        mediator.registerHandler(new DockerMcpRequestHandler());
-        mediator.initialize();
+DefaultMcpMediator mediator = new DefaultMcpMediator(McpMediatorConfigurationBuilder.builder()
+          .createDefault()
+          .serverName(MY_EXAMPLE_MCP_SERVER_STDIO)
+          .build());
+mediator.registerHandler(new DockerMcpRequestHandler());
+mediator.initialize();
 
 ```
 This mediator runs a STDIO MCP server that handlers delegates requests from MCP client  (e.g. Claude Desktop app) to
