@@ -3,7 +3,6 @@ package io.github.makbn.mcp.mediator.core.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.makbn.mcp.mediator.api.McpMediatorConfigurationSpec;
-import io.github.makbn.mcp.mediator.api.McpMediatorException;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -113,20 +112,14 @@ public final class McpMediatorDefaultConfigurationBuilder {
     }
 
     @NonNull
-    public McpMediatorDefaultConfiguration build() {
-        verifyConfigurationProperties();
-        return configuration;
+    public McpMediatorDefaultConfigurationBuilder serializer(@NonNull ObjectMapper serializer) {
+        this.configuration.setSerializer(serializer);
+        return this;
     }
 
-    private void verifyConfigurationProperties() {
-        if (configuration.getServerName().isBlank()) {
-            throw new McpMediatorException("serverName is required");
-        } else if (configuration.getServerVersion().isBlank()) {
-            throw new McpMediatorException("serverVersion is required");
-        }
-
-        if (!configuration.isToolsEnabled()) {
-            log.warn("MCP Server Tools capability is disabled!");
-        }
+    @NonNull
+    public McpMediatorDefaultConfiguration build() {
+        McpMediatorConfigurationVerification.verifyConfigurationProperties(configuration);
+        return configuration;
     }
 }

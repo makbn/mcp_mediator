@@ -11,8 +11,29 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+
 
 /**
+ * Builder class for constructing instances of {@link McpMediatorProxyConfiguration}.
+ * <p>
+ * This builder provides a fluent API to configure various aspects of the MCP Mediator Proxy,
+ * including server metadata, tools availability, custom serializers, and remote server configurations.
+ * </p>
+ *
+ * <p>Usage example:</p>
+ * <pre>{@code
+ * McpMediatorProxyConfiguration config = McpMediatorProxyConfigurationBuilder.builder()
+ *     .serverName("MyServer")
+ *     .serverVersion("1.0.0")
+ *     .tools(true)
+ *     .objectMapper(new ObjectMapper())
+ *     .addRemoteServer(mcpMediatorRemoteMcpServerConfiguration)
+ *     .build();
+ * }</pre>
+ *
  * @author Matt Akbarian
  */
 @Slf4j
@@ -42,26 +63,57 @@ public final class McpMediatorProxyConfigurationBuilder {
      */
     @NonNull
     public McpMediatorProxyConfigurationBuilder serverName(@NonNull String name) {
-        throw new UnsupportedOperationException("Not implemented yet!");
+        this.configuration.setServerName(name);
+        return this;
     }
 
     @NonNull
     public McpMediatorProxyConfigurationBuilder serverVersion(@NonNull String version) {
-        throw new UnsupportedOperationException("Not implemented yet!");
+        this.configuration.setServerVersion(version);
+        return this;
     }
 
     @NonNull
     public McpMediatorProxyConfigurationBuilder tools(boolean enabled) {
-        throw new UnsupportedOperationException("Not implemented yet!");
+        this.configuration.setToolsEnabled(enabled);
+        return this;
     }
 
     @NonNull
     public McpMediatorProxyConfigurationBuilder objectMapper(@NonNull ObjectMapper objectMapper) {
-        throw new UnsupportedOperationException("Not implemented yet!");
+        this.configuration.setSerializer(objectMapper);
+        return this;
     }
 
     @NonNull
+    public McpMediatorProxyConfigurationBuilder addRemoteServer(
+            @NonNull McpMediatorProxyConfiguration.McpMediatorRemoteMcpServerConfiguration server) {
+        this.configuration.getRemoteMcpServerConfigurations().add(server);
+        return this;
+    }
+
+    @NonNull
+    public McpMediatorProxyConfigurationBuilder addRemoteServers(
+            @NonNull Collection<McpMediatorProxyConfiguration.McpMediatorRemoteMcpServerConfiguration> servers) {
+        this.configuration.getRemoteMcpServerConfigurations().addAll(servers);
+        return this;
+    }
+
+    /**
+     * Finalizes the configuration and verify the validity of configuration
+     *
+     * @return the final configuration instance
+     */
+    @NonNull
     public McpMediatorProxyConfiguration build() {
+        this.configuration.setRemoteMcpServerConfigurations(
+                Collections.unmodifiableList(this.configuration.getRemoteMcpServerConfigurations()));
+
+        McpMediatorConfigurationVerification.verifyConfigurationProperties(configuration);
+        this.configuration.getRemoteMcpServerConfigurations().forEach(server -> {
+            McpMediatorConfigurationVerification.verifyMcpMediatorRemoteMcpServerConfiguration(server);
+            server.setSerializer(Objects.requireNonNullElse(server.getSerializer(), this.configuration.getSerializer()));
+        });
         throw new UnsupportedOperationException("Not implemented yet!");
     }
 }

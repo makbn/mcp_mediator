@@ -6,6 +6,7 @@ import io.github.makbn.mcp.mediator.api.McpTransportType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -15,8 +16,9 @@ public final class McpMediatorProxyConfiguration extends McpMediatorDefaultConfi
 
     @Getter
     @Builder
+    @Setter(AccessLevel.PACKAGE)
     @RequiredArgsConstructor(staticName = "of")
-    @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+    @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class McpMediatorRemoteMcpServerConfiguration {
         McpTransportType remoteTransportType;
         String remoteServerAddress;
@@ -24,5 +26,5 @@ public final class McpMediatorProxyConfiguration extends McpMediatorDefaultConfi
         ObjectMapper serializer;
     }
 
-    List<McpMediatorRemoteMcpServerConfiguration> remoteMcpServerConfigurations;
+    List<McpMediatorRemoteMcpServerConfiguration> remoteMcpServerConfigurations = new ArrayList<>();
 }
