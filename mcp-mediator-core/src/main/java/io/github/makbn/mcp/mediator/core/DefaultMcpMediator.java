@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Default base implementation of the MCP Mediator for MCP Server.
@@ -113,15 +114,24 @@ public class DefaultMcpMediator implements McpMediator {
     protected void delegate() {
         handlers.forEach((mediatorRequestType, handler) -> {
             McpRequestAdapter adapter = McpRequestAdapter.builder().request(mediatorRequestType).build();
-            mcpSyncServer.addTool(new McpServerFeatures.SyncToolSpecification(defineMcpTool(adapter),
-                    (mcpSyncServerExchange, stringObjectMap) -> {
-                        try {
-                            return new McpSchema.CallToolResult(execute(stringObjectMap, mediatorRequestType), false);
-                        } catch (Exception e) {
-                            return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent(e.getMessage())), true);
-                        }
-                    }));
+            mcpSyncServer.addTool(createMcpToolSpecification(adapter,
+                    clientPassedArgs -> execute(clientPassedArgs, mediatorRequestType)));
         });
+    }
+
+    @NonNull
+    protected McpServerFeatures.SyncToolSpecification createMcpToolSpecification(
+            @NonNull McpRequestAdapter adapter,
+            @NonNull Function<Map<String, Object>, List<McpSchema.Content>> functionToCall) {
+
+        return new McpServerFeatures.SyncToolSpecification(defineMcpTool(adapter),
+                (mcpSyncServerExchange, stringObjectMap) -> {
+                    try {
+                        return new McpSchema.CallToolResult(functionToCall.apply(stringObjectMap), false);
+                    } catch (Exception e) {
+                        return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent(e.getMessage())), true);
+                    }
+                });
     }
 
     private McpServerTransportProvider getMcpServerTransportProvider() {
