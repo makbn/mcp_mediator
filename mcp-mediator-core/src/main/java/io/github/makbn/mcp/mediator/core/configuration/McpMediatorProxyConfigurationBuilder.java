@@ -1,11 +1,8 @@
 package io.github.makbn.mcp.mediator.core.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.makbn.mcp.mediator.api.McpMediatorConfigurationSpec;
-import io.github.makbn.mcp.mediator.api.McpMediatorException;
 import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -55,7 +52,16 @@ public final class McpMediatorProxyConfigurationBuilder {
      */
     @NonNull
     public McpMediatorProxyConfigurationBuilder from(@NonNull McpMediatorProxyConfiguration config) {
-        throw new UnsupportedOperationException("Not implemented yet!");
+        McpMediatorConfigurationHelper.copyMcpMediatorConfigurationBasicProperties(config, this.configuration);
+        // Deep copy remote server configurations
+        this.configuration.getRemoteMcpServerConfigurations().clear();
+        this.configuration.getRemoteMcpServerConfigurations().addAll(config.getRemoteMcpServerConfigurations()
+                .stream()
+                .filter(Objects::nonNull)
+                .map(McpMediatorProxyConfiguration.McpMediatorRemoteMcpServerConfiguration::copy)
+                .toList());
+
+        return this;
     }
 
     /**
@@ -109,11 +115,11 @@ public final class McpMediatorProxyConfigurationBuilder {
         this.configuration.setRemoteMcpServerConfigurations(
                 Collections.unmodifiableList(this.configuration.getRemoteMcpServerConfigurations()));
 
-        McpMediatorConfigurationVerification.verifyConfigurationProperties(configuration);
+        McpMediatorConfigurationHelper.verifyConfigurationProperties(configuration);
         this.configuration.getRemoteMcpServerConfigurations().forEach(server -> {
-            McpMediatorConfigurationVerification.verifyMcpMediatorRemoteMcpServerConfiguration(server);
+            McpMediatorConfigurationHelper.verifyMcpMediatorRemoteMcpServerConfiguration(server);
             server.setSerializer(Objects.requireNonNullElse(server.getSerializer(), this.configuration.getSerializer()));
         });
-        throw new UnsupportedOperationException("Not implemented yet!");
+        return configuration;
     }
 }

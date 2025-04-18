@@ -24,6 +24,17 @@ public final class McpMediatorProxyConfiguration extends McpMediatorDefaultConfi
         String remoteServerAddress;
         List<String> remoteServerArgs;
         ObjectMapper serializer;
+
+        McpMediatorRemoteMcpServerConfiguration copy() {
+            return McpMediatorRemoteMcpServerConfiguration.builder()
+                    .remoteTransportType(this.getRemoteTransportType())
+                    .remoteServerAddress(this.getRemoteServerAddress())
+                    .remoteServerArgs(this.getRemoteServerArgs() != null
+                            ? new ArrayList<>(this.getRemoteServerArgs())
+                            : null)
+                    .serializer(this.getSerializer())
+                    .build();
+        }
     }
 
     List<McpMediatorRemoteMcpServerConfiguration> remoteMcpServerConfigurations = new ArrayList<>();

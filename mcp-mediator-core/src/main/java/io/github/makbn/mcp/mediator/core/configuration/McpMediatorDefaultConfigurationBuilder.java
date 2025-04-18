@@ -14,6 +14,33 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 
+/**
+ * Builder class for constructing {@link McpMediatorDefaultConfiguration} instances.
+ * <p>
+ * This builder provides default values from system properties and allows fluent customization
+ * of configuration fields such as transport type, server details, input/output streams, and serialization.
+ * </p>
+ *
+ * <p><b>System Property Defaults:</b></p>
+ * <ul>
+ *     <li>{@code mcp.mediator.server.name} (default: {@code mcp_mediator_server})</li>
+ *     <li>{@code mcp.mediator.server.version} (default: {@code 1.0.0})</li>
+ * </ul>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * McpMediatorDefaultConfiguration config = McpMediatorDefaultConfigurationBuilder.builder()
+ *     .serverName("my-mediator")
+ *     .transportType(McpTransportType.SSE)
+ *     .serverAddress("http://localhost:8080/mcp")
+ *     .build();
+ * }</pre>
+ *
+ * @see McpMediatorDefaultConfiguration
+ * @see McpTransportType
+ *
+ * @author Matt Akbarian
+ */
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE, staticName = "of")
@@ -48,15 +75,7 @@ public final class McpMediatorDefaultConfigurationBuilder {
      */
     @NonNull
     public McpMediatorDefaultConfigurationBuilder from(@NonNull McpMediatorDefaultConfiguration config) {
-        this.configuration.setServerName(config.getServerName());
-        this.configuration.setServerVersion(config.getServerVersion());
-        this.configuration.setToolsEnabled(config.isToolsEnabled());
-        this.configuration.setTransportType(config.getTransportType());
-        this.configuration.setStdioInputStream(config.getStdioInputStream());
-        this.configuration.setStdioOutputStream(config.getStdioOutputStream());
-        this.configuration.setSerializer(config.getSerializer());
-        this.configuration.setServerAddress(config.getServerAddress());
-
+        McpMediatorConfigurationHelper.copyMcpMediatorConfigurationBasicProperties(config, this.configuration);
         return this;
     }
 
@@ -119,7 +138,7 @@ public final class McpMediatorDefaultConfigurationBuilder {
 
     @NonNull
     public McpMediatorDefaultConfiguration build() {
-        McpMediatorConfigurationVerification.verifyConfigurationProperties(configuration);
+        McpMediatorConfigurationHelper.verifyConfigurationProperties(configuration);
         return configuration;
     }
 }
