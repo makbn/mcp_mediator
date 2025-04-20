@@ -1,5 +1,7 @@
 package io.github.makbn.mcp.mediator.api.feature;
 
+import jakarta.annotation.Nonnull;
+
 /**
  * The Model Context Protocol (MCP) allows servers to expose tools that can be invoked by language models.
  * Tools enable models to interact with external systems, such as querying databases, calling APIs, or
@@ -18,5 +20,11 @@ public record McpTools(boolean listChanged) implements McpCapability {
     @Override
     public boolean isServerFeature() {
         return true;
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return "tools";
     }
 }

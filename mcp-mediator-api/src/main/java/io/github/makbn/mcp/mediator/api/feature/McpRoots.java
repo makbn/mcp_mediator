@@ -1,5 +1,7 @@
 package io.github.makbn.mcp.mediator.api.feature;
 
+import jakarta.annotation.Nonnull;
+
 /**
  * The Model Context Protocol (MCP) provides a standardized way for clients to expose filesystem “roots” to servers.
  * Roots define the boundaries of where servers can operate within the filesystem, allowing them to
@@ -22,5 +24,11 @@ public record McpRoots(boolean listChanged) implements McpCapability {
     @Override
     public boolean isServerFeature() {
         return false;
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return "roots";
     }
 }

@@ -1,5 +1,7 @@
 package io.github.makbn.mcp.mediator.api.feature;
 
+import jakarta.annotation.Nonnull;
+
 /**
  * The Model Context Protocol (MCP) provides a standardized way for servers to send structured log messages to clients.
  * Clients can control logging verbosity by setting minimum log levels, with servers sending notifications
@@ -18,5 +20,11 @@ public record McpLogging() implements McpCapability, McpUtility {
     @Override
     public boolean isServerFeature() {
         return true;
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return "logging";
     }
 }

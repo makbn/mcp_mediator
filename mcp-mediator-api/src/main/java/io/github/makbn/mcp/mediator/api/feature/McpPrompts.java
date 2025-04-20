@@ -1,5 +1,7 @@
 package io.github.makbn.mcp.mediator.api.feature;
 
+import jakarta.annotation.Nonnull;
+
 /**
  * The Model Context Protocol (MCP) provides a standardized way for servers to expose prompt templates to clients.
  * Prompts allow servers to provide structured messages and instructions for interacting with language models.
@@ -19,5 +21,12 @@ public record McpPrompts(boolean listChanged) implements McpCapability {
     @Override
     public boolean isServerFeature() {
         return true;
+    }
+
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return "prompts";
     }
 }

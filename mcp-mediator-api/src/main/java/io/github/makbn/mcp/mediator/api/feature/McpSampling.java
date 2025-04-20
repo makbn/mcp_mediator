@@ -1,5 +1,7 @@
 package io.github.makbn.mcp.mediator.api.feature;
 
+import jakarta.annotation.Nonnull;
+
 /**
  * The Model Context Protocol (MCP) provides a standardized way for servers to request LLM sampling
  * (“completions” or “generations”) from language models via clients. This flow allows clients to maintain
@@ -20,5 +22,11 @@ public record McpSampling() implements McpCapability {
     @Override
     public boolean isServerFeature() {
         return false;
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return "sampling";
     }
 }

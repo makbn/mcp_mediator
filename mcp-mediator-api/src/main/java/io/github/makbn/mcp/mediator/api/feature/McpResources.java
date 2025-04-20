@@ -1,5 +1,7 @@
 package io.github.makbn.mcp.mediator.api.feature;
 
+import jakarta.annotation.Nonnull;
+
 /**
  * The Model Context Protocol (MCP) provides a standardized way for servers to expose resources to clients.
  * Resources allow servers to share data that provides context to language models, such as files, database schemas,
@@ -19,5 +21,11 @@ public record McpResources(boolean subscribe, boolean listChanged) implements Mc
     @Override
     public boolean isServerFeature() {
         return true;
+    }
+
+    @Nonnull
+    @Override
+    public String getName() {
+        return "resources";
     }
 }
