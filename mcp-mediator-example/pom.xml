@@ -65,6 +65,10 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -74,7 +78,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>io.github.makbn.mcp.mediator.example.DefaultMcpMediatorStdioExample</mainClass>
+                    <mainClass>io.github.makbn.mcp.mediator.example.ProxyMcpMediatorStdioExample</mainClass>
                     <layout>JAR</layout>
                     <excludes>
                         <exclude>

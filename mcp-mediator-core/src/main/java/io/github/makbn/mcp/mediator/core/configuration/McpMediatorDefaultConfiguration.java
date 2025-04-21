@@ -1,10 +1,12 @@
 package io.github.makbn.mcp.mediator.core.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.makbn.mcp.mediator.api.McpMediatorConfigurationSpec;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,13 +32,20 @@ import java.io.OutputStream;
  */
 @Getter
 @Setter(AccessLevel.PACKAGE)
+@SuperBuilder
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 @FieldDefaults(level = AccessLevel.PROTECTED)
 public sealed class McpMediatorDefaultConfiguration implements McpMediatorConfigurationSpec permits McpMediatorProxyConfiguration {
-    String serverName;
-    String serverVersion;
-    boolean toolsEnabled;
-    ObjectMapper serializer;
-    McpTransportType transportType;
+    @Builder.Default
+    String serverName = "";
+    @Builder.Default
+    String serverVersion = "";
+    @Builder.Default
+    ObjectMapper serializer = JsonMapper.builder().build();
+    @Builder.Default
+    McpTransportType transportType = McpTransportType.STDIO;
+    @Builder.Default
+    boolean toolsEnabled = true;
 
     /**
      * Specific to {@link McpTransportType#SSE} transport mode.
@@ -48,11 +57,13 @@ public sealed class McpMediatorDefaultConfiguration implements McpMediatorConfig
      * Specific to {@link McpTransportType#STDIO} transport mode. By default, it should be {@link System#in}.
      * @see <a href="https://modelcontextprotocol.io/sdk/java/mcp-server#stdio">Server Transport Providers</a>
      */
-    InputStream stdioInputStream;
+    @Builder.Default
+    InputStream stdioInputStream = System.in;
 
     /**
      * Specific to {@link McpTransportType#STDIO} transport mode. By default, it should be {@link System#out}.
      * @see <a href="https://modelcontextprotocol.io/sdk/java/mcp-server#stdio">Server Transport Providers</a>
      */
-    OutputStream stdioOutputStream;
+    @Builder.Default
+    OutputStream stdioOutputStream = System.out;
 }

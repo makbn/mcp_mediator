@@ -40,5 +40,13 @@
             <artifactId>jackson-module-jsonSchema</artifactId>
             <version>2.18.3</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <scope>provided</scope>
+            <version>${jakarta.servlet-api.version}</version>
+        </dependency>
     </dependencies>
 </project> 

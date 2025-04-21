@@ -36,10 +36,9 @@ import java.io.OutputStream;
  *     .build();
  * }</pre>
  *
+ * @author Matt Akbarian
  * @see McpMediatorDefaultConfiguration
  * @see McpTransportType
- *
- * @author Matt Akbarian
  */
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -54,16 +53,12 @@ public final class McpMediatorDefaultConfigurationBuilder {
 
     @SuppressWarnings("java:S106")
     static McpMediatorDefaultConfigurationBuilder builder() {
-        McpMediatorDefaultConfiguration defaultConfiguration = new McpMediatorDefaultConfiguration();
-
-        defaultConfiguration.setServerName(System.getProperty(DEFAULT_SERVER_NAME_KEY, DEFAULT_SERVER_NAME_VALUE));
-        defaultConfiguration.setServerVersion(System.getProperty(DEFAULT_SERVER_VERSION_KEY, DEFAULT_SERVER_VERSION_VALUE));
-        defaultConfiguration.setSerializer(JsonMapper.builder().build());
-        defaultConfiguration.setToolsEnabled(Boolean.TRUE);
-        defaultConfiguration.setTransportType(McpTransportType.STDIO);
-        defaultConfiguration.setStdioInputStream(System.in);
-        defaultConfiguration.setStdioOutputStream(System.out);
-
+        McpMediatorDefaultConfiguration defaultConfiguration = McpMediatorDefaultConfiguration.builder()
+                .serverName(System.getProperty(DEFAULT_SERVER_NAME_KEY, DEFAULT_SERVER_NAME_VALUE))
+                .serverVersion(System.getProperty(DEFAULT_SERVER_VERSION_KEY, DEFAULT_SERVER_VERSION_VALUE))
+                .stdioInputStream(System.in)
+                .stdioOutputStream(System.out)
+                .build();
         return McpMediatorDefaultConfigurationBuilder.of(defaultConfiguration);
     }
 

@@ -1,11 +1,7 @@
 package io.github.makbn.mcp.mediator.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.makbn.mcp.mediator.api.McpMediator;
-import io.github.makbn.mcp.mediator.api.McpMediatorException;
-import io.github.makbn.mcp.mediator.api.McpMediatorRequest;
-import io.github.makbn.mcp.mediator.api.McpMediatorRequestHandler;
+import io.github.makbn.mcp.mediator.api.*;
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorConfigurationBuilder;
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorDefaultConfiguration;
 import io.modelcontextprotocol.server.McpServer;
@@ -64,16 +60,24 @@ public class DefaultMcpMediator implements McpMediator {
             mcpSyncServer = McpServer.sync(stdioServerTransportProvider)
                     .serverInfo(configuration.getServerName(), configuration.getServerVersion())
                     .capabilities(McpSchema.ServerCapabilities.builder()
-                            .tools(configuration.isToolsEnabled())
+                            .tools(true)
                             .build())
                     .build();
 
             delegate();
             log.debug("MCP Mediator initialized successfully");
         } catch (Exception e) {
+            log.info("stopping the MCP Mediator server");
+            closeServer();
+            log.info("MCP Mediator server stopped");
+            throw new McpMediatorException("Failed to initialize MCP Mediator", e);
+        }
+    }
+
+    private synchronized void closeServer() {
+        if (mcpSyncServer != null) {
             mcpSyncServer.closeGracefully();
             mcpSyncServer = null;
-            throw new McpMediatorException("Failed to initialize MCP Mediator", e);
         }
     }
 
@@ -107,6 +111,7 @@ public class DefaultMcpMediator implements McpMediator {
         try {
             return handler.handle(request);
         } catch (Exception e) {
+            log.error("Failed to execute request {}", request, e);
             throw new McpMediatorException(String.format("Failed to execute request %s", request), e);
         }
     }
@@ -115,19 +120,19 @@ public class DefaultMcpMediator implements McpMediator {
         handlers.forEach((mediatorRequestType, handler) -> {
             McpRequestAdapter adapter = McpRequestAdapter.builder().request(mediatorRequestType).build();
             mcpSyncServer.addTool(createMcpToolSpecification(adapter,
-                    clientPassedArgs -> execute(clientPassedArgs, mediatorRequestType)));
+                    clientPassedArgs -> executeClientCall(clientPassedArgs, mediatorRequestType)));
         });
     }
 
     @NonNull
     protected McpServerFeatures.SyncToolSpecification createMcpToolSpecification(
-            @NonNull McpRequestAdapter adapter,
-            @NonNull Function<Map<String, Object>, List<McpSchema.Content>> functionToCall) {
+            @NonNull McpToolAdapter<?> adapter,
+            @NonNull Function<Map<String, Object>, McpSchema.CallToolResult> functionToCall) {
 
         return new McpServerFeatures.SyncToolSpecification(defineMcpTool(adapter),
                 (mcpSyncServerExchange, stringObjectMap) -> {
                     try {
-                        return new McpSchema.CallToolResult(functionToCall.apply(stringObjectMap), false);
+                        return functionToCall.apply(stringObjectMap);
                     } catch (Exception e) {
                         return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent(e.getMessage())), true);
                     }
@@ -149,7 +154,7 @@ public class DefaultMcpMediator implements McpMediator {
      * Finds a handler that can process the given request.
      *
      * @param request the request to find a handler for
-     * @return the handler that can process the request, or null if none found
+     * @return the handler that can process the request or null if none found
      */
     @SuppressWarnings("unchecked")
     private McpMediatorRequestHandler<?, ?> findHandler(@NonNull McpMediatorRequest<?> request) {
@@ -158,19 +163,20 @@ public class DefaultMcpMediator implements McpMediator {
     }
 
     @NonNull
-    private McpSchema.Tool defineMcpTool(@NonNull McpRequestAdapter adapter) {
+    private McpSchema.Tool defineMcpTool(@NonNull McpToolAdapter<?> adapter) {
         return new McpSchema.Tool(adapter.getMethod(), adapter.getDescription(), adapter.getSchema());
     }
 
-    @NonNull
-    private <T extends McpMediatorRequest<R>, R> List<McpSchema.Content> execute(
-            @NonNull Map<String, Object> mcpClientRequestParameters, @NonNull Class<T> mcpMediatorRequestType) {
-
-        R mcpMediatorResult;
+    private McpSchema.CallToolResult executeClientCall(
+            Map<String, Object> mcpClientRequestParameters,
+            Class<? extends McpMediatorRequest<?>> mcpMediatorRequestType) {
         try {
-            T mcpMediatorRequest = new ObjectMapper().convertValue(mcpClientRequestParameters, mcpMediatorRequestType);
-            mcpMediatorResult = execute(mcpMediatorRequest);
-            return List.of(new McpSchema.TextContent(serialize(mcpMediatorResult)));
+            McpMediatorRequest<?> mcpMediatorRequest = configuration.getSerializer()
+                    .convertValue(mcpClientRequestParameters, mcpMediatorRequestType);
+            Object mcpMediatorResult = execute(mcpMediatorRequest);
+
+            return new McpSchema.CallToolResult(
+                    List.of(new McpSchema.TextContent(serialize(mcpMediatorResult))), false);
         } catch (IOException e) {
             throw new McpMediatorException("Failed to execute request", e);
         }

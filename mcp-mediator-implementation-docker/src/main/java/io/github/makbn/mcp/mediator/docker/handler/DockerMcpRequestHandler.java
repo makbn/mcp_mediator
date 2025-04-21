@@ -68,7 +68,7 @@ public class DockerMcpRequestHandler implements McpMediatorRequestHandler<Abstra
 
     private List<Container> getAllContainers(AllDockerContainersMcpRequest request) {
         ListContainersCmd cmd = dockerClient.listContainersCmd();
-        cmd.withShowAll(request.isLoadAllContainers());
+        cmd.withShowAll(request.getLoadAllContainers());
         return cmd.exec();
     }
 } 

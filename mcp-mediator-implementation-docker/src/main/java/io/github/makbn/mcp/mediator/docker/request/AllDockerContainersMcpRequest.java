@@ -1,10 +1,8 @@
 package io.github.makbn.mcp.mediator.docker.request;
 
 import io.github.makbn.mcp.mediator.api.McpTool;
-import lombok.Getter;
 
 
-@Getter
 @McpTool(name = "get_all_containers",
         description = "get all docker containers. It can include the stopped one by providing load all containers as true",
         schema = AllDockerContainersMcpRequest.class,
@@ -18,5 +16,9 @@ import lombok.Getter;
                 idempotentHint = true)
         })
 public class AllDockerContainersMcpRequest extends AbstractDockerMcpRequest {
-    boolean loadAllContainers;
+    Boolean loadAllContainers;
+
+    public boolean getLoadAllContainers() {
+        return Boolean.TRUE.equals(loadAllContainers);
+    }
 }

@@ -6,13 +6,16 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import io.github.makbn.mcp.mediator.api.McpMediatorException;
 import io.github.makbn.mcp.mediator.api.McpMediatorRequest;
 import io.github.makbn.mcp.mediator.api.McpTool;
+import io.github.makbn.mcp.mediator.api.McpToolAdapter;
 import io.github.makbn.mcp.mediator.core.util.McpObjects;
 import io.github.makbn.mcp.mediator.core.util.SneakyFunction;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -29,12 +32,20 @@ import java.util.Optional;
 @Builder
 @RequiredArgsConstructor(staticName = "of")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class McpRequestAdapter {
+public class McpRequestAdapter implements McpToolAdapter<McpTool> {
     private static final String ERROR = "McpRequest should be annotated with '@%s'";
 
     Class<? extends McpMediatorRequest<?>> request;
     ObjectMapper objectMapper = new ObjectMapper();
     JsonSchemaGenerator schemaGenerator = new JsonSchemaGenerator(objectMapper);
+
+    @NonNull
+    @Override
+    public McpTool getSourceTool() {
+        return Objects.requireNonNullElseGet(request.getDeclaredAnnotation(McpTool.class), () -> {
+            throw new McpMediatorException(String.format(ERROR, McpTool.class.getSimpleName()));
+        });
+    }
 
     /**
      * Gets the type of the request.
@@ -42,10 +53,10 @@ public class McpRequestAdapter {
      * @return the request type.
      * @throws McpMediatorException if the {@code McpTool} annotation is not present.
      */
+    @NonNull
+    @Override
     public String getMethod() {
-        return Optional.ofNullable(request.getDeclaredAnnotation(McpTool.class))
-                .orElseThrow(() -> new McpMediatorException(String.format(ERROR, McpTool.class.getSimpleName())))
-                .name();
+        return getSourceTool().name();
     }
 
     /**
@@ -53,6 +64,8 @@ public class McpRequestAdapter {
      *
      * @throws UnsupportedOperationException always, as this method is not yet implemented.
      */
+    @NonNull
+    @Override
     public String getAnnotations() {
         throw new UnsupportedOperationException("Not implemented yet");
     }
@@ -66,20 +79,22 @@ public class McpRequestAdapter {
      * @return the description of the tool
      * @throws McpMediatorException if the {@code McpTool} annotation is not present.
      */
+    @NonNull
+    @Override
     public String getDescription() {
-        return Optional.ofNullable(request.getDeclaredAnnotation(McpTool.class))
-                .orElseThrow(() -> new McpMediatorException(String.format(ERROR, McpTool.class.getSimpleName())))
-                .description();
+        return getSourceTool().description();
     }
 
     /**
      * Converts the tool input parameter type as the MCP Server schema. See {@link McpTool#schema()}.
      *
-     * @return the json string of the input schema.
+     * @return the JSON string of the input schema.
      * @throws McpMediatorException if the {@code McpTool} annotation is not present.
      */
+    @NonNull
+    @Override
     public String getSchema() {
-        return Optional.ofNullable(request.getDeclaredAnnotation(McpTool.class))
+        return Optional.of(getSourceTool())
                 .map(McpTool::schema)
                 .map(schema -> McpObjects.sneakyOperation(
                         (SneakyFunction<Class<?>, JsonSchema>) schemaGenerator::generateSchema, schema))

@@ -1,7 +1,7 @@
 <configuration>
     <!--No logging to the stdout while the server is running on stdio mode-->
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${mcp.mediator.log.dir}/conditional.log</file>
+        <file>logs/example.log</file>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
         </encoder>

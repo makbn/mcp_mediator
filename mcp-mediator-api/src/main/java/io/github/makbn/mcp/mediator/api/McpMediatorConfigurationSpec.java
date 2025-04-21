@@ -43,6 +43,9 @@ public interface McpMediatorConfigurationSpec {
     @Nonnull
     String getServerVersion();
 
+    @Nonnull
+    McpTransportType getTransportType();
+
     /**
      * Indicates whether the Tool capability of your MCP server is available.
      *

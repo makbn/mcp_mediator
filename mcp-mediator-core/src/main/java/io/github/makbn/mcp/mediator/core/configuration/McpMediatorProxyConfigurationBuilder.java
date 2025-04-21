@@ -41,7 +41,9 @@ public final class McpMediatorProxyConfigurationBuilder {
     McpMediatorProxyConfiguration configuration;
 
     public static McpMediatorProxyConfigurationBuilder builder() {
-        return McpMediatorProxyConfigurationBuilder.of(new McpMediatorProxyConfiguration());
+        McpMediatorProxyConfiguration defaultConfiguration = McpMediatorProxyConfiguration.builder()
+                .build();
+        return McpMediatorProxyConfigurationBuilder.of(defaultConfiguration);
     }
 
     /**
@@ -86,8 +88,8 @@ public final class McpMediatorProxyConfigurationBuilder {
     }
 
     @NonNull
-    public McpMediatorProxyConfigurationBuilder objectMapper(@NonNull ObjectMapper objectMapper) {
-        this.configuration.setSerializer(objectMapper);
+    public McpMediatorProxyConfigurationBuilder serializer(@NonNull ObjectMapper serializer) {
+        this.configuration.setSerializer(serializer);
         return this;
     }
 
@@ -106,7 +108,7 @@ public final class McpMediatorProxyConfigurationBuilder {
     }
 
     /**
-     * Finalizes the configuration and verify the validity of configuration
+     * Finalizes the configuration and verify the validity of the configuration
      *
      * @return the final configuration instance
      */
