@@ -3,6 +3,9 @@
 A Java-based implementation of the Model Context Protocol (MCP) mediator, providing seamless integration between MCP clients and servers. 
 This project enables efficient communication and tool execution in the MCP ecosystem.
 
+![Claude Desktop Integration](.github/static/cl_client_screenshot.png)
+
+
 ## Overview
 
 The MCP Mediator implements the Model Context Protocol specification, providing a robust framework for:
