@@ -16,10 +16,10 @@ The MCP Mediator implements the Model Context Protocol specification, providing 
 
 For more information, visit the project's wiki: [MCP Mediator Wiki](https://github.com/makbn/mcp_mediator/wiki).
 Wiki page is organized as follows:
-- [Getting Started](wiki/1‐Getting-Started)  
-- [Basic Usage](wiki/2‐Basic-Usage)  
-- [Configuration](wiki/3‐Configuration)  
-- [Components](wiki/4‐Components)  
+- [Getting Started](https://github.com/makbn/mcp_mediator/wiki/1‐Getting-Started)  
+- [Basic Usage](https://github.com/makbn/mcp_mediator/wiki/2‐Basic-Usage)  
+- [Configuration](https://github.com/makbn/mcp_mediator/wiki/3‐Configuration)  
+- [Components](https://github.com/makbn/mcp_mediator/wiki/4‐Components)  
 
 
 
