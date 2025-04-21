@@ -15,6 +15,12 @@ The MCP Mediator implements the Model Context Protocol specification, providing 
 - Integrating with Spring Framework and Spring Boot
 
 For more information, visit the project's wiki: [MCP Mediator Wiki](https://github.com/makbn/mcp_mediator/wiki).
+Wiki page is organized as follows:
+- [Getting Started](wiki/1‐Getting-Started)  
+- [Basic Usage](wiki/2‐Basic-Usage)  
+- [Configuration](wiki/3‐Configuration)  
+- [Components](wiki/4‐Components)  
+
 
 
 ## Features
