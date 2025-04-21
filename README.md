@@ -3,7 +3,7 @@
 A Java-based implementation of the Model Context Protocol (MCP) mediator, providing seamless integration between MCP clients and servers. 
 This project enables efficient communication and tool execution in the MCP ecosystem.
 
-![Claude Desktop Integration](.github/static/cl_client_screenshot.png)
+![Claude Desktop Integration]([.github/static/cl_client_screenshot.png](https://github.com/makbn/mcp_mediator/blob/master/.github/static/cl_client_screenshot.png))
 
 
 ## Overview
@@ -13,6 +13,9 @@ The MCP Mediator implements the Model Context Protocol specification, providing 
 - Managing tool execution
 - Supporting various transport mechanisms
 - Integrating with Spring Framework and Spring Boot
+
+For more information, visit the project's wiki: [MCP Mediator Wiki](https://github.com/makbn/mcp_mediator/wiki).
+
 
 ## Features
 
