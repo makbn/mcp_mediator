@@ -178,31 +178,6 @@ initialization process. It is also expandable by registering request handlers us
 same as `DefaultMcpMediator`.
 
 
-## Architecture
-
-The MCP Mediator follows the Model Context Protocol architecture:
-
-1. **Protocol Layer**
-   - Handles message framing
-   - Manages request/response patterns
-   - Implements JSON-RPC 2.0
-
-2. **Transport Layer**
-   - Supports stdio transport
-   - Handles message serialization/deserialization
-   - Manages connection lifecycle
-
-3. **Tool Layer**
-   - Implements tool execution
-   - Handles request routing
-   - Manages tool capabilities
-     
-4. **Mediate Layer**
-   - Registers available request handlers
-   - Converts `Tool` invocation to *MCP Mediator Request*
-   - Delegates the generated *MCP Mediator Request* to the proper *MCP Mediator Request Handler*
-   - Passes the request execution result back 
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. [Read this first](CONTRIBUTING.md)!
