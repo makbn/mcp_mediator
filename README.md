@@ -18,11 +18,11 @@ Ready:
 - Extensible request handling system
 - Configurable server capabilities
 - Support for multiple tool implementations
+- Support for proxying multiple MCP servers
 
 Work In Progress:
 - Spring Framework and Spring Boot integration
 - Comprehensive error handling
-- Support for proxying multiple MCP servers
 - Docker Implementation
 - Dropbox Implementation
 
@@ -140,6 +140,37 @@ $ View result from get_all_containers
 -----
 
 The `DockerMcpRequestHandler` is still under development. All the existing MCP severs, including official and non-official `docker-mcp` MCP servers, can be used by delegating the request using mediator by implementing a delegator `McpMediatorRequestHandler` that receives a request and passes that to the remote MCP sever.
+
+
+
+###  Proxy MCP Mediator
+To create a proxy server:
+```java
+ // as an example ~/sdk/jdk/jdk-17.0.14+7/Contents/Home/bin/java
+String command = args[0];
+// e.g., -jar ~/mcp-mediator-example.jar
+List<String> remoteServerArgs = List.of(Arrays.copyOfRange(args, 1, args.length));
+
+ProxyMcpMediator mediator = new ProxyMcpMediator(McpMediatorConfigurationBuilder.builder()
+       .creatProxy()
+       .serializer(new ObjectMapper())
+       .tools(true)
+       .addRemoteServer(McpMediatorProxyConfiguration.McpMediatorRemoteMcpServerConfiguration.builder()
+               .remoteTransportType(McpTransportType.STDIO)
+               .remoteServerAddress(command)
+               .remoteServerArgs(remoteServerArgs)
+               .build())
+       .serverName(MY_EXAMPLE_MCP_SERVER_STDIO)
+       .serverVersion("1.0.0.0")
+       .build());
+
+mediator.initialize();
+```
+This mediator creates a Proxy MCP server and connects to all the given remote servers and works as a proxy between the 
+client and the remote servers. The mediator will advertise all the available `Tools` to the clients during the 
+initialization process. It is also expandable by registering request handlers using `ProxyMcpMediator#registerHandler()`
+same as `DefaultMcpMediator`.
+
 
 ## Architecture
 
