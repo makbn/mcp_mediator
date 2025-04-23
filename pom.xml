@@ -22,6 +22,7 @@
         <slf4j.version>2.0.17</slf4j.version>
         <lombok.version>1.18.38</lombok.version>
         <mcp-bom.version>0.9.0</mcp-bom.version>
+        <jackson.version>2.18.3</jackson.version>
         <jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
         <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
     </properties>
@@ -30,6 +31,7 @@
         <module>mcp-mediator-api</module>
         <module>mcp-mediator-core</module>
         <module>mcp-mediator-spring</module>
+        <module>mcp-mediator-commons</module>
         <module>mcp-mediator-spring-boot-starter</module>
         <module>mcp-mediator-implementation-docker</module>
         <module>mcp-mediator-implementation-dropbox</module>
