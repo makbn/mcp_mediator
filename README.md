@@ -3,7 +3,7 @@
 A Java-based implementation of the Model Context Protocol (MCP) mediator, providing seamless integration between MCP clients and servers. 
 This project enables efficient communication and tool execution in the MCP ecosystem.
 
-![Claude Desktop Integration](.github/static/cl_client_screenshot.png)
+![Claude Desktop Integration](./.github/static/cl_client_screenshot.png)
 
 
 ## Overview
@@ -14,22 +14,31 @@ The MCP Mediator implements the Model Context Protocol specification, providing 
 - Supporting various transport mechanisms
 - Integrating with Spring Framework and Spring Boot
 
+For more information, visit the project's wiki: [MCP Mediator Wiki](https://github.com/makbn/mcp_mediator/wiki).
+Wiki page is organized as follows:
+- [Getting Started](https://github.com/makbn/mcp_mediator/wiki/1‐Getting-Started)  
+- [Basic Usage](https://github.com/makbn/mcp_mediator/wiki/2‐Basic-Usage)  
+- [Configuration](https://github.com/makbn/mcp_mediator/wiki/3‐Configuration)  
+- [Components](https://github.com/makbn/mcp_mediator/wiki/4‐Components)  
+
+
+
 ## Features
 
-Ready:
+:white_check_mark: Ready:
 - Support for stdio/sse transport
 - Extensible request handling system
 - Configurable server capabilities
 - Support for multiple tool implementations
 - Support for proxying multiple MCP servers
 
-Work In Progress:
-- Spring Framework and Spring Boot integration
-- Comprehensive error handling
-- Docker Implementation
-- Dropbox Implementation
+:hourglass_flowing_sand: Work In Progress:
+-  Spring Framework and Spring Boot integration
+-  Comprehensive error handling
+-  Docker Implementation
+-  Dropbox Implementation
 
-Planned:
+:baby_bottle: Planned:
 - Generate MCP Server for existing Spring `Controllers` and mediate request between MCP client and controllers
 - Generate MCP Server for existing OpenAPI specification and generate MCP `Tool` for the APIs and delegate the requests  
 
@@ -174,31 +183,6 @@ client and the remote servers. The mediator will advertise all the available `To
 initialization process. It is also expandable by registering request handlers using `ProxyMcpMediator#registerHandler()`
 same as `DefaultMcpMediator`.
 
-
-## Architecture
-
-The MCP Mediator follows the Model Context Protocol architecture:
-
-1. **Protocol Layer**
-   - Handles message framing
-   - Manages request/response patterns
-   - Implements JSON-RPC 2.0
-
-2. **Transport Layer**
-   - Supports stdio transport
-   - Handles message serialization/deserialization
-   - Manages connection lifecycle
-
-3. **Tool Layer**
-   - Implements tool execution
-   - Handles request routing
-   - Manages tool capabilities
-     
-4. **Mediate Layer**
-   - Registers available request handlers
-   - Converts `Tool` invocation to *MCP Mediator Request*
-   - Delegates the generated *MCP Mediator Request* to the proper *MCP Mediator Request Handler*
-   - Passes the request execution result back 
 
 ## Contributing
 
