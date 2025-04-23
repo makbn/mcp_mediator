@@ -46,12 +46,14 @@ Wiki page is organized as follows:
 
 - `mcp-mediator-api`: Core API interfaces and contracts
 - `mcp-mediator-core`: Core implementation and common functionality
+- `mcp-mediator-commons`: Reusable components to make implementation easier
 - `mcp-mediator-example`: Example shows how to use and extend the mediator framework
 - `mcp-mediator-spring`: Spring Framework and Spring AI integration
-- `mcp-mediator-spring-boot-starter`: Spring Boot auto-configuration to generate MCP server automatically for the available endpoints
+- `mcp-mediator-spring-boot-starter`: Spring Boot `autoconfiguration` to generate MCP server automatically for the available endpoints
 - Implementation modules for various services:
   - `mcp-mediator-implementation-docker`: Docker service integration (WIP)
   - `mcp-mediator-implementation-dropbox`: Dropbox service integration (WIP)
+  - `mcp-mediator-implementation-query`: Query services with public APIs: [List of all Query MCP Servers](#Implemented-Query-Mcp-Server)
 
 ## Getting Started
 
@@ -182,6 +184,16 @@ This mediator creates a Proxy MCP server and connects to all the given remote se
 client and the remote servers. The mediator will advertise all the available `Tools` to the clients during the 
 initialization process. It is also expandable by registering request handlers using `ProxyMcpMediator#registerHandler()`
 same as `DefaultMcpMediator`.
+
+
+### Implemented Query MCP Servers
+
+Query MCP servers are MCP servers that receive a query from the user and search a source for the content related to the input 
+query. All the queries are part of `mcp-mediator-implementation-query` module and are defined using MCP Mediator Request Handlers.
+So far, these queries are implemented:
+- Wikipedia MCP Server: Search Wikipedia with an input query
+- Stackoverflow MCP Server: Search Stackoverflow website
+- GitHub MCP Server: Search for GitHub projects
 
 
 ## Contributing

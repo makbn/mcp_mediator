@@ -117,7 +117,7 @@ public abstract class McpMediatorHttpRequestHandler<T extends McpMediatorRequest
     }
 
     @NonNull
-    protected abstract Class<HttpUriRequestBase> getHttpMethod(@NonNull T request);
+    protected abstract Class<? extends HttpUriRequestBase> getHttpMethod(@NonNull T request);
 
     @NonNull
     protected abstract String getUri(@NonNull T request);

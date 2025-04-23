@@ -33,6 +33,7 @@
         <module>mcp-mediator-spring</module>
         <module>mcp-mediator-commons</module>
         <module>mcp-mediator-spring-boot-starter</module>
+        <module>mcp-mediator-implementation-query</module>
         <module>mcp-mediator-implementation-docker</module>
         <module>mcp-mediator-implementation-dropbox</module>
         <module>mcp-mediator-example</module>
