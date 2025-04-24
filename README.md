@@ -76,6 +76,25 @@ mediator.registerHandler(new DockerMcpRequestHandler());
 mediator.initialize();
 ```
 
+To run the examples as Claude Desktop MCP Server:
+```yaml
+{
+  "mcpServers": {
+    "my_java_mcp_server": {
+      "command": "[path to]/run.sh",
+      "args": [
+        "DefaultMcpMediatorStdioExample"
+      ]
+    }
+  }
+}
+```
+This config runs `DefaultMcpMediatorStdioExample` sa STDIO MCP server. 
+Make sure to make `run.sh` executable and add `mvn` command to your path.
+```bash
+ ./run.sh ClassName [arg1 arg2 ...]
+```
+
 This mediator runs a STDIO MCP server with handlers and delegates requests from MCP client  (e.g. Claude Desktop) to
 the registered handlers, in this case `DockerMcpRequestHandler`. A simple example query:
 
