@@ -131,7 +131,7 @@ public class DefaultMcpMediator implements McpMediator {
         Future<R> executionSyncedResult = executorService.submit(executor);
         try {
             return executionSyncedResult.get();
-        }catch (ExecutionException e){
+        } catch (ExecutionException e) {
             throw new McpMediatorException(String.format("Failed to execute request %s", request), e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -159,6 +159,7 @@ public class DefaultMcpMediator implements McpMediator {
                     try {
                         return functionToCall.apply(stringObjectMap);
                     } catch (Exception e) {
+                        log.error("Failed to execute the request, sending error to client", e);
                         return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent(e.getMessage())), true);
                     }
                 });
