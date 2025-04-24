@@ -3,7 +3,10 @@ package io.github.makbn.mcp.mediator.docker.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.makbn.mcp.mediator.api.McpMediatorRequest;
 import io.github.makbn.mcp.mediator.commons.handler.McpMediatorHttpRequestHandler;
+import io.github.makbn.mcp.mediator.core.McpExecutionContext;
+import io.github.makbn.mcp.mediator.query.handler.WikipediaSummaryRequestHandler;
 import io.github.makbn.mcp.mediator.query.request.WikipediaQueryRequest;
+import io.github.makbn.mcp.mediator.query.request.WikipediaSummaryRequest;
 import io.github.makbn.mcp.mediator.query.request.result.WikipediaQueryResult;
 import lombok.NonNull;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -86,6 +89,9 @@ public class WikipediaQueryRequestHandler extends McpMediatorHttpRequestHandler<
             return resultBuilder.build();
         }
 
+        boolean summaryHandlerRegistered = McpExecutionContext.get().getMediator()
+                .isRequestHandlerRegistered(WikipediaSummaryRequestHandler.class);
+
         for (JsonNode page : pages) {
             WikipediaQueryResult.WikipediaQueryResultPage.WikipediaQueryResultPageBuilder pageBuilder = WikipediaQueryResult.WikipediaQueryResultPage.builder();
             String title = page.path("title").asText();
@@ -96,8 +102,18 @@ public class WikipediaQueryRequestHandler extends McpMediatorHttpRequestHandler<
             if (revisions.isArray() && !revisions.isEmpty()) {
                 pageBuilder.lastUpdated(revisions.get(0).path("timestamp").asText());
             }
-            // TODO: implement chain logic
-            pageBuilder.snippet("N/A (snippet not included in this response)");
+            // will block this thread until the execution is finished, might be a good idea to use ForkJoinPool
+            if (summaryHandlerRegistered) {
+                WikipediaQueryResult summary = McpExecutionContext.get().getMediator()
+                        .execute(WikipediaSummaryRequest.builder()
+                                .title(title)
+                                .build());
+                summary.getResults().stream()
+                        .findFirst().ifPresent(s -> pageBuilder.snippet(s.getSnippet()));
+            }else {
+                pageBuilder.snippet("N/A (snippet not included in this response)");
+            }
+
             resultBuilder.result(pageBuilder.build());
         }
 

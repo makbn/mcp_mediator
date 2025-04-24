@@ -87,7 +87,7 @@ public abstract class McpMediatorHttpRequestHandler<T extends McpMediatorRequest
     @NonNull
     protected ClassicRequestBuilder createHttpMethodBuilder(@NonNull T request) {
         ClassicRequestBuilder requestBuilder;
-        Class<HttpUriRequestBase> baseMethod = getHttpMethod(request);
+        Class<? extends HttpUriRequestBase> baseMethod = getHttpMethod(request);
 
         if (HttpGet.class.isAssignableFrom(baseMethod)) {
             requestBuilder = ClassicRequestBuilder.get();

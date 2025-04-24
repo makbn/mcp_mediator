@@ -1,8 +1,14 @@
 package io.github.makbn.mcp.mediator.docker.request;
 
 import io.github.makbn.mcp.mediator.api.McpTool;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.FieldDefaults;
 
-
+@Data
+@EqualsAndHashCode(callSuper = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @McpTool(name = "get_all_containers",
         description = "get all docker containers. It can include the stopped one by providing load all containers as true",
         schema = AllDockerContainersMcpRequest.class,
