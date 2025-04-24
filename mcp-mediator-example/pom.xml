@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.github.makbn</groupId>
         <artifactId>mcp_mediator</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>mcp-mediator-example</artifactId>
@@ -28,14 +28,17 @@
         <dependency>
             <groupId>io.github.makbn</groupId>
             <artifactId>mcp-mediator-core</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.makbn</groupId>
             <artifactId>mcp-mediator-implementation-docker</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-            <scope>compile</scope>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.makbn</groupId>
+            <artifactId>mcp-mediator-implementation-query</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project> 

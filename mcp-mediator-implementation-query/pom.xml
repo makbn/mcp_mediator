@@ -7,12 +7,12 @@
     <parent>
         <groupId>io.github.makbn</groupId>
         <artifactId>mcp_mediator</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>mcp-mediator-implementation-query</artifactId>
     <name>MCP Mediator Query Implementation</name>
-    <description>QPublic APIs Query implementation for MCP Mediator</description>
+    <description>Query MCP Server: Public APIs Query implementation for MCP Mediator</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -27,7 +27,13 @@
             <artifactId>mcp-mediator-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
+        <dependency>
+            <groupId>io.github.makbn</groupId>
+            <artifactId>mcp-mediator-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>mcp-mediator-commons</artifactId>
