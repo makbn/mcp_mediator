@@ -53,7 +53,7 @@ Wiki page is organized as follows:
 - Implementation modules for various services:
   - `mcp-mediator-implementation-docker`: Docker service integration (WIP)
   - `mcp-mediator-implementation-dropbox`: Dropbox service integration (WIP)
-  - `mcp-mediator-implementation-query`: Query services with public APIs: [List of all Query MCP Servers](#Implemented-Query-Mcp-Server)
+  - `mcp-mediator-implementation-query`: Query services with public APIs: [List of all Query MCP Servers](#implemented-query-mcp-servers)
 
 ## Getting Started
 
