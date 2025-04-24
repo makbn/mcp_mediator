@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.makbn.mcp.mediator.api.*;
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorConfigurationBuilder;
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorDefaultConfiguration;
+import io.github.makbn.mcp.mediator.core.internal.McpRequestExecutor;
+import io.github.makbn.mcp.mediator.core.internal.MinimalMcpMediator;
 import io.modelcontextprotocol.server.McpServer;
 import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.server.McpSyncServer;
@@ -20,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 /**
@@ -35,7 +37,8 @@ public class DefaultMcpMediator implements McpMediator {
     @SuppressWarnings("rawtypes")
     Map<Class<? extends McpMediatorRequest<?>>, McpMediatorRequestHandler> handlers = new ConcurrentHashMap<>();
     McpMediatorDefaultConfiguration configuration;
-
+    @NonFinal
+    ExecutorService executorService;
     @NonFinal
     McpSyncServer mcpSyncServer;
 
@@ -56,6 +59,7 @@ public class DefaultMcpMediator implements McpMediator {
     public void initialize() throws McpMediatorException {
         log.info("Initializing MCP Mediator");
         try {
+            executorService = Executors.newCachedThreadPool();
             McpServerTransportProvider stdioServerTransportProvider = getMcpServerTransportProvider();
             mcpSyncServer = McpServer.sync(stdioServerTransportProvider)
                     .serverInfo(configuration.getServerName(), configuration.getServerVersion())
@@ -103,16 +107,37 @@ public class DefaultMcpMediator implements McpMediator {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends McpMediatorRequest<R>, R> R execute(T request) throws McpMediatorException {
-        McpMediatorRequestHandler<T, R> handler = (McpMediatorRequestHandler<T, R>) findHandler(request);
-        if (handler == null) {
-            throw new McpMediatorException(String.format("No handler found for request type %s", request));
-        }
+        final McpExecutionContext parentContext = McpExecutionContext.get();
+        final McpMediatorRequestHandler<T, R> handler = (McpMediatorRequestHandler<T, R>) findHandler(request);
 
+        McpRequestExecutor<R> executor = new McpRequestExecutor<>() {
+            @Override
+            public R call() {
+                McpExecutionContext.set(MinimalMcpMediator.of(DefaultMcpMediator.this), parentContext);
+                if (handler == null) {
+                    throw new McpMediatorException(String.format("No handler found for request type %s", request));
+                }
+                try {
+                    return handler.handle(request);
+                } catch (Exception e) {
+                    log.error("Failed to execute request {}", request, e);
+                    throw new McpMediatorException(String.format("Failed to execute request %s", request), e);
+                } finally {
+                    McpExecutionContext.remove();
+                }
+            }
+        };
+
+        Future<R> executionSyncedResult = executorService.submit(executor);
         try {
-            return handler.handle(request);
-        } catch (Exception e) {
-            log.error("Failed to execute request {}", request, e);
+            return executionSyncedResult.get();
+        }catch (ExecutionException e){
             throw new McpMediatorException(String.format("Failed to execute request %s", request), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            String message = String.format("Internal handler execution interrupted! interrupting mediator! request: %s", request);
+            log.error(message, e);
+            throw new McpMediatorException(message, e);
         }
     }
 
