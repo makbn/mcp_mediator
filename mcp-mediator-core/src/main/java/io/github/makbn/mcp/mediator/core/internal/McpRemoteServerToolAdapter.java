@@ -44,9 +44,8 @@ public class McpRemoteServerToolAdapter {
                             request.getParams().getClientVersion()))
                     .requestTimeout(request.getRemoteServer().getRemoteServerTimeout())
                     .capabilities(createCapabilities())
-                    .loggingConsumer(loggingMessageNotification -> {
-                        log.debug("Server log received: {}", loggingMessageNotification);
-                    })
+                    .loggingConsumer(loggingMessageNotification ->
+                            log.debug("Server log received: {}", loggingMessageNotification))
                     .build();
             McpSchema.InitializeResult result = client.initialize();
             log.debug("connection result for {} \n is: {}", request.getRemoteServer(), result);

@@ -1,6 +1,8 @@
 package io.github.makbn.mcp.mediator.core.internal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.makbn.mcp.mediator.core.util.McpUtils;
+import reactor.util.annotation.NonNull;
+import reactor.util.annotation.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -8,10 +10,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Utility class to resolve method arguments dynamically from a {@link Map} of JSON-like input.
+ * <p>
+ * It supports automatic conversion of common Java types such as primitives, wrappers, and {@link String}.
+ * <p>
+ * Users can also register custom converters for additional types using {@link #registerTypeConverter(Class, Function)}.
+ * <p>
+ *
+ * <p><strong>Note:</strong> This class is mainly intended for internal framework use
+ * where dynamic method invocation based on deserialized JSON is required.
+ *
+ * @author Matt Akbarian
+ */
 @SuppressWarnings("java:S4276")
 public class McpMethodArgumentResolver {
+    /** Registry of type converters for primitives, wrappers, and String. */
     private static final Map<Class<?>, Function<Object, Object>> TYPE_CONVERTERS = new HashMap<>();
-
 
     static {
         // Register converters for primitives and wrappers
@@ -33,26 +48,40 @@ public class McpMethodArgumentResolver {
         TYPE_CONVERTERS.put(Character.class, value -> value.toString().charAt(0));
         TYPE_CONVERTERS.put(String.class, Object::toString);
     }
-    
-    ObjectMapper objectMapper;
 
-
-    public Object[] resolveArguments(Method method, Map<String, Object> jsonMap) {
+    /**
+     * Resolves the arguments for the given method by mapping input JSON keys to method parameters.
+     * <p>
+     * This method handles automatic type conversion for supported types.
+     *
+     * @param method  the method for which arguments are to be resolved
+     * @param jsonMap a map representing the JSON input
+     * @return an array of arguments, ready to be passed to {@link Method#invoke(Object, Object...)}
+     */
+    public static Object[] resolveArguments(@NonNull Method method, @NonNull Map<String, Object> jsonMap) {
         Parameter[] parameters = method.getParameters();
         Object[] args = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
-            String paramName = parameter.getName();
+            String paramName = McpUtils.getParameterName(parameter);
             Object rawValue = jsonMap.get(paramName);
-
             args[i] = convertValue(parameter.getType(), rawValue);
         }
-
         return args;
     }
 
-    private Object convertValue(Class<?> targetType, Object value) {
+    /**
+     * Converts a raw value to the target type using registered converters.
+     * <p>
+     * If no converter is found, it attempts to cast directly.
+     *
+     * @param targetType the expected parameter type
+     * @param value      the raw value to be converted
+     * @return the converted value, or {@code null} if the input value is {@code null}
+     */
+    @Nullable
+    private static Object convertValue(Class<?> targetType, @Nullable Object value) {
         if (value == null) {
             return null;
         }
@@ -61,11 +90,18 @@ public class McpMethodArgumentResolver {
             return converter.apply(value);
         }
 
-        return objectMapper.convertValue(value, targetType);
+        return targetType.cast(value);
     }
 
-
-    public void registerTypeConverter(Class<?> type, Function<Object, Object> converter) {
+    /**
+     * Registers a custom converter for a specific type.
+     * <p>
+     * This allows users to handle custom or complex types during argument resolution.
+     *
+     * @param type      the target type
+     * @param converter the converter function to transform input into the target type
+     */
+    public void registerTypeConverter(@NonNull Class<?> type, @NonNull Function<Object, Object> converter) {
         TYPE_CONVERTERS.put(type, converter);
     }
 
