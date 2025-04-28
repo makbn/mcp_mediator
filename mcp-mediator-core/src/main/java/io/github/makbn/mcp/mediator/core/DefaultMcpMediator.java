@@ -51,7 +51,7 @@ public class DefaultMcpMediator implements McpMediator {
     }
 
     /**
-     * Initializes the mediator, creating the internal MCP server and registering all known tools.
+     * Initializes the mediator, creating the internal MCP server, and registering all known tools.
      *
      * @throws McpMediatorException if initialization fails
      */
@@ -104,6 +104,30 @@ public class DefaultMcpMediator implements McpMediator {
         return handlers.values().stream().toList();
     }
 
+    /**
+     * Executes a given {@link McpMediatorRequest} using its corresponding {@link McpMediatorRequestHandler}.
+     * <p>
+     * The method handles the full lifecycle of request execution, including:
+     * <ul>
+     *   <li>Retrieving the parent {@link McpExecutionContext}</li>
+     *   <li>Finding and validating the appropriate handler</li>
+     *   <li>Wrapping the execution inside a {@link McpRequestExecutor} to maintain execution context isolation</li>
+     *   <li>Submitting the execution to an {@link java.util.concurrent.ExecutorService}</li>
+     *   <li>Handling and propagating execution errors, wrapping them into a {@link McpMediatorException}</li>
+     * </ul>
+     *
+     * <p>Important details:
+     * <ul>
+     *   <li>If the execution fails, a detailed error will be logged and wrapped into a {@link McpMediatorException}.</li>
+     *   <li>If the execution thread is interrupted, it re-interrupts the current thread and throws a {@link McpMediatorException}.</li>
+     * </ul>
+     *
+     * @param request the request to be executed
+     * @param <T>     the type of the mediator request
+     * @param <R>     the type of the response expected from the handler
+     * @return the result produced by the handler
+     * @throws McpMediatorException if any error occurs during handler validation, execution, or interruption.
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T extends McpMediatorRequest<R>, R> R execute(T request) throws McpMediatorException {
