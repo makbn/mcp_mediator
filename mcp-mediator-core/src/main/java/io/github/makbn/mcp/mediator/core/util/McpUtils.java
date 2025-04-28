@@ -4,6 +4,7 @@ package io.github.makbn.mcp.mediator.core.util;
 import io.github.makbn.mcp.mediator.api.McpMediatorException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 
 import java.util.function.Function;
@@ -18,7 +19,7 @@ import java.util.function.Function;
  * @author Matt Akbarion
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public final class McpObjects {
+public final class McpUtils {
 
     /**
      * Performs an unchecked cast of an object to a specified type.
@@ -62,5 +63,17 @@ public final class McpObjects {
     @SneakyThrows
     public static <T, R> R sneakyOperation(Function<T, R> writeValueAsString, T schema) {
         return writeValueAsString.apply(schema);
+    }
+
+    public static String convertCamelCaseToSnake(@NonNull String input) {
+        StringBuilder result = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            if (Character.isUpperCase(c)) {
+                result.append("_").append(Character.toLowerCase(c));
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 }

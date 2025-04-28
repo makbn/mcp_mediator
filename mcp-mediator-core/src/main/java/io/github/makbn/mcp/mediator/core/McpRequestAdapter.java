@@ -7,7 +7,7 @@ import io.github.makbn.mcp.mediator.api.McpMediatorException;
 import io.github.makbn.mcp.mediator.api.McpMediatorRequest;
 import io.github.makbn.mcp.mediator.api.McpTool;
 import io.github.makbn.mcp.mediator.api.McpToolAdapter;
-import io.github.makbn.mcp.mediator.core.util.McpObjects;
+import io.github.makbn.mcp.mediator.core.util.McpUtils;
 import io.github.makbn.mcp.mediator.core.util.SneakyFunction;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -96,9 +96,9 @@ public class McpRequestAdapter implements McpToolAdapter<McpTool> {
     public String getSchema() {
         return Optional.of(getSourceTool())
                 .map(McpTool::schema)
-                .map(schema -> McpObjects.sneakyOperation(
+                .map(schema -> McpUtils.sneakyOperation(
                         (SneakyFunction<Class<?>, JsonSchema>) schemaGenerator::generateSchema, schema))
-                .map(schema -> McpObjects.sneakyOperation(
+                .map(schema -> McpUtils.sneakyOperation(
                         (SneakyFunction<JsonSchema, String>) objectMapper::writeValueAsString, schema))
                 .orElseThrow(() -> new McpMediatorException(String.format(ERROR, McpTool.class.getSimpleName())));
     }
