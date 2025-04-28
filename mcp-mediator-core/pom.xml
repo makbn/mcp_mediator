@@ -50,5 +50,11 @@
             <scope>provided</scope>
             <version>${jakarta.servlet-api.version}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/jakarta.validation/jakarta.validation-api -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>${jakarta.validation-api.version}</version>
+        </dependency>
     </dependencies>
 </project> 
