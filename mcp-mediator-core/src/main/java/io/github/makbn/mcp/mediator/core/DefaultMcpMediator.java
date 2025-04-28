@@ -114,9 +114,7 @@ public class DefaultMcpMediator implements McpMediator {
             @Override
             public R call() {
                 McpExecutionContext.set(MinimalMcpMediator.of(DefaultMcpMediator.this), parentContext);
-                if (handler == null) {
-                    throw new McpMediatorException(String.format("No handler found for request type %s", request));
-                }
+                validateHandler(handler, request);
                 try {
                     return handler.handle(request);
                 } catch (Exception e) {
@@ -138,6 +136,12 @@ public class DefaultMcpMediator implements McpMediator {
             String message = String.format("Internal handler execution interrupted! interrupting mediator! request: %s", request);
             log.error(message, e);
             throw new McpMediatorException(message, e);
+        }
+    }
+
+    private static <T extends McpMediatorRequest<R>, R> void validateHandler(McpMediatorRequestHandler<T, R> handler, T request) {
+        if (handler == null) {
+            throw new McpMediatorException(String.format("No handler found for request type %s", request));
         }
     }
 

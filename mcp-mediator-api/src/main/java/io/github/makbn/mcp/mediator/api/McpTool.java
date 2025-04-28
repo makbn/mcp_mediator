@@ -7,16 +7,22 @@ import java.lang.annotation.Target;
 
 /**
  * Metadata annotation to map an MCP tool definition to a {@link McpMediatorRequest}. Tools are identified by unique
- * names and can include descriptions to guide their usage. Tools represent dynamic operations that can modify state
+ * names and can include descriptions to guide their usage. Tools represent dynamic operations that can modify the state
  * or interact with external systems.
  *
  * @author Matt Akbarian
  * @see <a href="https://modelcontextprotocol.io/docs/concepts/tools">MCP Tool Concept</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.METHOD})
+@SuppressWarnings("unused")
 public @interface McpTool {
 
+    final class NotSpecified {
+        private NotSpecified() {
+            // NO-OP
+        }
+    }
     /**
      * Optional hints about tool behavior.
      */
@@ -37,12 +43,12 @@ public @interface McpTool {
         boolean destructiveHint() default false;
 
         /**
-         * If true, repeated calls with same args have no additional effect.
+         * If true, repeated calls with the same args have no additional effect.
          */
         boolean idempotentHint() default false;
 
         /**
-         * If true, tool interacts with external entities.
+         * If true, the tool interacts with external entities.
          */
         boolean openWorldHint() default false;
     }
@@ -60,7 +66,7 @@ public @interface McpTool {
     /**
      * @return JSON Schema for the tool's parameters.
      */
-    Class<?> schema();
+    Class<?> schema() default NotSpecified.class;
 
     /**
      * @return Optional hints about tool behavior.
