@@ -5,7 +5,7 @@ import java.util.Properties;
 
 /**
  * Base interface for MCP request handlers.
- * Each specific MCP implementation should implement this interface for their request types.
+ * Each MCP implementation should implement this interface for their request types.
  *
  * @param <T> the type of request this handler can process
  *

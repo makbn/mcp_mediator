@@ -14,6 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Configuration class for Mcp Mediator proxy mode.
+ *
+ * @see McpMediatorDefaultConfiguration
+ *
+ * @author Matt Akbarian rastaghi
+ */
 @Getter
 @SuperBuilder
 @ToString

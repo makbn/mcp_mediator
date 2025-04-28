@@ -1,7 +1,5 @@
 package io.github.makbn.mcp.mediator.core.internal;
 
-
-import io.github.makbn.mcp.mediator.api.McpProtocolVersion;
 import io.github.makbn.mcp.mediator.api.feature.McpCapability;
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorProxyConfiguration;
 import lombok.*;
