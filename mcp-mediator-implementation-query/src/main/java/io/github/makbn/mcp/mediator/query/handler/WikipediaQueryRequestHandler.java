@@ -1,10 +1,9 @@
-package io.github.makbn.mcp.mediator.docker.handler;
+package io.github.makbn.mcp.mediator.query.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.makbn.mcp.mediator.api.McpMediatorRequest;
 import io.github.makbn.mcp.mediator.commons.handler.McpMediatorHttpRequestHandler;
 import io.github.makbn.mcp.mediator.core.McpExecutionContext;
-import io.github.makbn.mcp.mediator.query.handler.WikipediaSummaryRequestHandler;
 import io.github.makbn.mcp.mediator.query.request.WikipediaQueryRequest;
 import io.github.makbn.mcp.mediator.query.request.WikipediaSummaryRequest;
 import io.github.makbn.mcp.mediator.query.request.result.WikipediaQueryResult;
