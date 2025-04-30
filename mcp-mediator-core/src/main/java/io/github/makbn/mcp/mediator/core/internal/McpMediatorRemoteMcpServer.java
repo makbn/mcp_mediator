@@ -1,7 +1,7 @@
 package io.github.makbn.mcp.mediator.core.internal;
 
 import io.github.makbn.mcp.mediator.api.McpMediatorException;
-import io.github.makbn.mcp.mediator.core.NativeToolAdapter;
+import io.github.makbn.mcp.mediator.core.adaper.NativeToolAdapter;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema;
 import lombok.*;

@@ -9,7 +9,10 @@ import lombok.NonNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,9 +34,11 @@ import java.util.stream.Collectors;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class McpMethodArgumentDescriber {
-    /** Set of supported validation annotations by default. */
+    /**
+     * Set of supported validation annotations by default.
+     */
     private static final List<Class<? extends Annotation>> VALIDATION_ANNOTATIONS = List.of(
-            NotNull.class, NonNull.class, Size.class, Min.class, Max.class, Pattern.class, Positive.class,
+            NotNull.class, Size.class, Min.class, Max.class, Pattern.class, Positive.class,
             Negative.class
     );
 
@@ -43,7 +48,6 @@ public final class McpMethodArgumentDescriber {
     static {
         // Register default extractors
         registerAnnotation(NotNull.class, ann -> "required (not null)");
-        registerAnnotation(NonNull.class, ann -> "required (not null)");
         registerAnnotation(Size.class, ann -> "size between " + ann.min() + " and " + ann.max());
         registerAnnotation(Min.class, ann -> "minimum value " + ann.value());
         registerAnnotation(Max.class, ann -> "maximum value " + ann.value());

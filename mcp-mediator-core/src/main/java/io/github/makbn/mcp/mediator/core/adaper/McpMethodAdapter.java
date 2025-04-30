@@ -1,4 +1,4 @@
-package io.github.makbn.mcp.mediator.core;
+package io.github.makbn.mcp.mediator.core.adaper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

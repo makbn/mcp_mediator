@@ -88,8 +88,27 @@ public class McpMethodSchemaGenerator {
      * @return the JSON schema node describing the parameter
      */
     @NonNull
-    private  ObjectNode describeParameter(Parameter parameter) {
-       return describeElement(parameter.getType(), parameter.getAnnotations());
+    private ObjectNode describeParameter(Parameter parameter) {
+        ObjectNode paramSchema = mapper.createObjectNode();
+        Class<?> type = parameter.getType();
+
+        if (isPrimitiveOrWrapper(type)) {
+            paramSchema.put(TYPE_KEY, mapJavaTypeToJsonType(type));
+        } else if (Collection.class.isAssignableFrom(type)) {
+            paramSchema.put(TYPE_KEY, "array");
+            paramSchema.set("items", mapper.createObjectNode().put(TYPE_KEY, TYPE)); // You can dig deeper if needed
+        } else if (Map.class.isAssignableFrom(type)) {
+            paramSchema.put(TYPE_KEY, TYPE);
+        } else {
+            // Complex nested type
+            paramSchema.put(TYPE_KEY, TYPE);
+            paramSchema.set(PROPERTIES_KEY, describeClassProperties(type));
+        }
+
+        // Handle validation annotations
+        addValidationConstraints(paramSchema, parameter.getAnnotations());
+
+        return paramSchema;
     }
 
     /**
@@ -102,39 +121,28 @@ public class McpMethodSchemaGenerator {
     private  ObjectNode describeClassProperties(Class<?> clazz) {
         ObjectNode propertiesNode = mapper.createObjectNode();
         for (Field field : clazz.getDeclaredFields()) {
-            ObjectNode fieldSchema = describeElement(field.getType(), field.getAnnotations());
+            ObjectNode fieldSchema = mapper.createObjectNode();
+            Class<?> fieldType = field.getType();
+
+            if (isPrimitiveOrWrapper(fieldType)) {
+                fieldSchema.put(TYPE_KEY, mapJavaTypeToJsonType(fieldType));
+            } else if (Collection.class.isAssignableFrom(fieldType)) {
+                fieldSchema.put(TYPE_KEY, "array");
+                fieldSchema.set("items", mapper.createObjectNode().put(TYPE_KEY, TYPE));
+            } else if (Map.class.isAssignableFrom(fieldType)) {
+                fieldSchema.put(TYPE_KEY, TYPE);
+            } else {
+                // Recursively handle nested classes
+                fieldSchema.put(TYPE_KEY, TYPE);
+                fieldSchema.set(PROPERTIES_KEY, describeClassProperties(fieldType));
+            }
+
+            // Handle validation annotations if any
+            addValidationConstraints(fieldSchema, field.getAnnotations());
+
             propertiesNode.set(field.getName(), fieldSchema);
         }
         return propertiesNode;
-    }
-
-    /**
-     * Describes an element based on its type and annotations.
-     * Handles primitives, collections, maps, and complex object types.
-     *
-     * @param type        the type of the element
-     * @param annotations annotations on the element
-     * @return a JSON schema node describing the element
-     */
-    @NonNull
-    private ObjectNode describeElement(Class<?> type, Annotation[] annotations) {
-        ObjectNode paramSchema = mapper.createObjectNode();
-
-        if (isPrimitiveOrWrapper(type)) {
-            paramSchema.put(TYPE_KEY, mapJavaTypeToJsonType(type));
-        } else if (Collection.class.isAssignableFrom(type)) {
-            paramSchema.put(TYPE_KEY, "array");
-            paramSchema.set("items", mapper.createObjectNode().put(TYPE_KEY, TYPE));
-        } else if (Map.class.isAssignableFrom(type)) {
-            paramSchema.put(TYPE_KEY, TYPE);
-        } else {
-            paramSchema.put(TYPE_KEY, TYPE);
-            paramSchema.set(PROPERTIES_KEY, describeClassProperties(type));
-        }
-
-        addValidationConstraints(paramSchema, annotations);
-
-        return paramSchema;
     }
 
     /**

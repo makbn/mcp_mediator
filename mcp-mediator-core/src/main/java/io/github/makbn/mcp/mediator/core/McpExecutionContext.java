@@ -1,5 +1,6 @@
 package io.github.makbn.mcp.mediator.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.makbn.mcp.mediator.core.internal.MinimalMcpMediator;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,6 +20,8 @@ public final class McpExecutionContext {
 
     @NonNull
     MinimalMcpMediator mediator;
+    @NonNull
+    ObjectMapper serializer;
     @Nullable
     McpExecutionContext parent;
     @NonNull
@@ -29,8 +32,8 @@ public final class McpExecutionContext {
         return CURRENT.get();
     }
 
-    static void set(MinimalMcpMediator mediator, @Nullable McpExecutionContext parent) {
-        CURRENT.set(McpExecutionContext.of(mediator, parent));
+    static void set(@NonNull MinimalMcpMediator mediator, @NonNull ObjectMapper serializer, @Nullable McpExecutionContext parent) {
+        CURRENT.set(McpExecutionContext.of(mediator, serializer, parent));
     }
 
     static void remove() {

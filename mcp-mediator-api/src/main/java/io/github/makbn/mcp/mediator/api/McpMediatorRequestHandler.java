@@ -45,5 +45,13 @@ public interface McpMediatorRequestHandler<T extends McpMediatorRequest<R>, R> {
         return new Properties();
     }
 
+    /**
+     * Will be called right before establishing the connection between this request handler and MCP Tool.
+     * @param args all the necessary information that may be required like serializer.
+     */
+    default void initialize(Object... args) {
+
+    }
+
 
 } 

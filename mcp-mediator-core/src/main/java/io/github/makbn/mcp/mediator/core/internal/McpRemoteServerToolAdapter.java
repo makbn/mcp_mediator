@@ -4,7 +4,7 @@ import io.github.makbn.mcp.mediator.api.McpMediatorException;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
 import io.github.makbn.mcp.mediator.api.feature.McpRoots;
 import io.github.makbn.mcp.mediator.api.feature.McpSampling;
-import io.github.makbn.mcp.mediator.core.NativeToolAdapter;
+import io.github.makbn.mcp.mediator.core.adaper.NativeToolAdapter;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
