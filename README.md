@@ -194,7 +194,6 @@ DockerClientService:
 
 ```java
 @McpService(name = "docker_mcp_server",  description = "provides common docker command as mcp tools")
-
 public class DockerClientService {
 
     DockerClient internalClient;
