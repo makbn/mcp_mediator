@@ -65,7 +65,8 @@ Wiki page is organized as follows:
 - Spring Boot 3.2.2 or later (for Spring Boot integration)
 
 All the examples are available under `mcp-mediator-exmple` module. It's still a work in progress and the examples will be added.
-### Default MCP Mediator 
+
+## Default MCP Mediator 
 To create a MCP Mediator with STDIO transport:
 
 ```java
@@ -99,7 +100,7 @@ Make sure to make `run.sh` executable and add `mvn` command to your path.
 This mediator runs a STDIO MCP server with handlers and delegates requests from MCP client  (e.g. Claude Desktop) to
 the registered handlers. 
 
-### Convert Existing to MCP Server
+## Convert Existing to MCP Server
 Convert the existing code, service, helper class, or method automatically to an MCP server using `@McpService`: 
 ```java
 DefaultMcpMediator mediator = new DefaultMcpMediator(McpMediatorConfigurationBuilder.builder()
@@ -136,7 +137,7 @@ public class DockerClientService {
 
 Checkout `mcp-mediator-implementation-docker` for more details.
 
-###  Proxy MCP Mediator
+##  Proxy MCP Mediator
 To create a proxy server:
 ```java
  // as an example ~/sdk/jdk/jdk-17.0.14+7/Contents/Home/bin/java
