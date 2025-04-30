@@ -2,7 +2,6 @@ package io.github.makbn.mcp.mediator.example;
 
 import io.github.makbn.mcp.mediator.core.DefaultMcpMediator;
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorConfigurationBuilder;
-import io.github.makbn.mcp.mediator.docker.handler.WikipediaQueryRequestHandler;
 import io.github.makbn.mcp.mediator.query.handler.WikipediaSummaryRequestHandler;
 import lombok.NonNull;
 
@@ -16,7 +15,7 @@ public class WikipediaMcpServerExample {
                 .serverVersion("1.0.0.0")
                 .build());
         mediator.registerHandler(new WikipediaSummaryRequestHandler());
-        mediator.registerHandler(new WikipediaQueryRequestHandler());
+        mediator.registerHandler(new io.github.makbn.mcp.mediator.query.handler.WikipediaQueryRequestHandler());
         mediator.initialize();
     }
 }

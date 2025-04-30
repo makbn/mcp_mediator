@@ -2,7 +2,7 @@ package io.github.makbn.mcp.mediator.example;
 
 import io.github.makbn.mcp.mediator.core.DefaultMcpMediator;
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorConfigurationBuilder;
-import io.github.makbn.mcp.mediator.docker.handler.DockerMcpRequestHandler;
+import io.github.makbn.mcp.mediator.query.handler.WikipediaQueryRequestHandler;
 
 public class DefaultMcpMediatorStdioExample {
 
@@ -14,7 +14,7 @@ public class DefaultMcpMediatorStdioExample {
                 .serverName(MY_EXAMPLE_MCP_SERVER_STDIO)
                 .serverVersion("1.0.0.0")
                 .build());
-        mediator.registerHandler(new DockerMcpRequestHandler());
+        mediator.registerHandler(new WikipediaQueryRequestHandler());
         mediator.initialize();
     }
 }
