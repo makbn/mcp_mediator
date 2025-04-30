@@ -100,7 +100,7 @@ Make sure to make `run.sh` executable and add `mvn` command to your path.
 This mediator runs a STDIO MCP server with handlers and delegates requests from MCP client  (e.g. Claude Desktop) to
 the registered handlers. 
 
-## Convert Existing to MCP Server
+## Convert Existing Code to MCP Server
 Convert the existing code, service, helper class, or method automatically to an MCP server using `@McpService`: 
 ```java
 DefaultMcpMediator mediator = new DefaultMcpMediator(McpMediatorConfigurationBuilder.builder()
