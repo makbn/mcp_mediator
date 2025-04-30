@@ -73,7 +73,7 @@ DefaultMcpMediator mediator = new DefaultMcpMediator(McpMediatorConfigurationBui
           .createDefault()
           .serverName(MY_EXAMPLE_MCP_SERVER_STDIO)
           .build());
-mediator.registerHandler(new DockerMcpRequestHandler());
+mediator.registerHandler(new WikipediaQueryRequestHandler());
 mediator.initialize();
 ```
 
@@ -97,83 +97,7 @@ Make sure to make `run.sh` executable and add `mvn` command to your path.
 ```
 
 This mediator runs a STDIO MCP server with handlers and delegates requests from MCP client  (e.g. Claude Desktop) to
-the registered handlers, in this case `DockerMcpRequestHandler`. A simple example query:
-
-```text
-Show all my docker containers
-```
-and MCP Client (Claude Desktop) interaction with the Mediator:
-
------
-
-<details>
- <summary>I'll help you see all your Docker containers. Let me retrieve that information for you. </summary>
-
-
-```
-$ View result from get_all_containers
-```
-
-```json
-
-  {
-     "loadAllContainers": true
-  }
-          
-  {
-    "containers": [
-        {
-        "id": "61d89a44e4b5",
-        "name": "nginx-proxy",
-        "status": "running"
-        },
-        {
-        "id": "2c5bfa3b0d93",
-        "name": "gcr.io/k8s-minikube/kicbase:v0.0.46",
-        "status": "running"
-        },
-         // ...
-    ]
-  }
-
-```
-  
-> Here are all your Docker containers, including both running and non-running containers:
->
-> <table>
->  <thead>
->      <tr>
->          <th>CONTAINER ID</th>
->          <th>NAME</th>
->          <th>STATUS</th>
->      </tr>
->  </thead>
->  <tbody>
->      <tr>
->          <td>61d89a44e4b5</td>
->          <td>nginx-proxy</td>
->          <td>running</td>
->      </tr>
->      <tr>
->          <td>2c5bfa3b0d93</td>
->          <td>gcr.io/k8s-minikube/kicbase:v0.0.46</td>
->          <td>running</td>
->      </tr>
->      <tr>
->          <td>...</td>
->          <td>...</td>
->          <td>...</td>
->      </tr>
->  </tbody>
-> </table>
->
-> You have 10 containers total: 6 running, 2 exited, and 1 paused.
-
-</details>
-
------
-
-The `DockerMcpRequestHandler` is still under development. All the existing MCP severs, including official and non-official `docker-mcp` MCP servers, can be used by delegating the request using mediator by implementing a delegator `McpMediatorRequestHandler` that receives a request and passes that to the remote MCP sever.
+the registered handlers. 
 
 ### Convert Existing to MCP Server
 Convert the existing code, service, helper class, or method automatically to an MCP server using `@McpService`: 
