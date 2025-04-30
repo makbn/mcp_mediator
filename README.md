@@ -175,7 +175,43 @@ $ View result from get_all_containers
 
 The `DockerMcpRequestHandler` is still under development. All the existing MCP severs, including official and non-official `docker-mcp` MCP servers, can be used by delegating the request using mediator by implementing a delegator `McpMediatorRequestHandler` that receives a request and passes that to the remote MCP sever.
 
+### Convert Existing to MCP Server
+Convert the existing code, service, helper class, or method automatically to an MCP server using `@McpService`: 
+```java
+DefaultMcpMediator mediator = new DefaultMcpMediator(McpMediatorConfigurationBuilder.builder()
+                .createDefault()
+                .serverName(MY_EXAMPLE_MCP_SERVER_STDIO)
+                .serverVersion("1.0.0.0")
+                .build());
+// DockerClientService is an existing service class to interact with the installed Docker Client
+        mediator.registerHandler(McpServiceFactory.create(new DockerClientService(dockerClient))
+                .createForNonAnnotatedMethods(false)
+                .build());
+        mediator.initialize();
+```
 
+DockerClientService:
+
+```java
+@McpService(name = "docker_mcp_server",  description = "provides common docker command as mcp tools")
+
+public class DockerClientService {
+
+    DockerClient internalClient;
+
+    @McpTool(name = "docker_start_container",
+            description = "start an existing docker container using its containerId! containerId is required and " +
+                    "can't be null or empty! if successful, returns true.")
+    public boolean startContainerCmd(@NonNull String containerId) {
+        internalClient.startContainerCmd(containerId)
+                .exec();
+        return true;
+    }
+    // ...
+}
+```
+
+Checkout `mcp-mediator-implementation-docker` for more details.
 
 ###  Proxy MCP Mediator
 To create a proxy server:
