@@ -31,6 +31,7 @@ Wiki page is organized as follows:
 - Configurable server capabilities
 - Support for multiple tool implementations
 - Support for proxying multiple MCP servers
+- Automatically generating MCP Server Tools for the existing methods and services
 
 :hourglass_flowing_sand: Work In Progress:
 -  Spring Framework and Spring Boot integration
@@ -51,7 +52,7 @@ Wiki page is organized as follows:
 - `mcp-mediator-spring`: Spring Framework and Spring AI integration
 - `mcp-mediator-spring-boot-starter`: Spring Boot `autoconfiguration` to generate MCP server automatically for the available endpoints
 - Implementation modules for various services:
-  - `mcp-mediator-implementation-docker`: Docker service integration (WIP)
+  - `mcp-mediator-implementation-docker`: Docker service integration [Read More](mcp-mediator-implementation-docker/README.md)
   - `mcp-mediator-implementation-dropbox`: Dropbox service integration (WIP)
   - `mcp-mediator-implementation-query`: Query services with public APIs: [List of all Query MCP Servers](#implemented-query-mcp-servers)
 
