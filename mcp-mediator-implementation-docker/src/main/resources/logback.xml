@@ -1,0 +1,17 @@
+<configuration>
+
+    <property name="DOCKER_MCP_LOG_FILE" value="logs/docker_mcp_server.log" />
+    <property name="DOCKER_MCP_LOG_LEVEL" value="DEBUG" />
+
+    <!--No logging to the stdout while the server is running on stdio mode-->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>${DOCKER_MCP_LOG_FILE}</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} -%kvp- %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="${DOCKER_MCP_LOG_LEVEL}">
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>

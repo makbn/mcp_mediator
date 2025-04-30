@@ -32,6 +32,7 @@
         <flatten-maven-plugin.version>1.1.0</flatten-maven-plugin.version>
         <jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
         <bytebuddy.version>1.17.5</bytebuddy.version>
+        <logback.version>1.5.18</logback.version>
     </properties>
 
     <modules>
