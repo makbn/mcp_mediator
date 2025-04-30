@@ -46,12 +46,6 @@ public class DropboxMcpRequestHandler implements McpMediatorRequestHandler<Abstr
         }
     }
 
-
-    @Override
-    public Properties getProperties() {
-        return McpMediatorRequestHandler.super.getProperties();
-    }
-
     @Override
     public boolean canHandle(McpMediatorRequest<?> request) {
         return request instanceof AbstractDropboxRequest;
