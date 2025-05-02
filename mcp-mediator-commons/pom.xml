@@ -13,6 +13,9 @@
     <artifactId>mcp-mediator-commons</artifactId>
     <name>MCP Mediator Reusable components</name>
     <description>Reusable components for implementing MCP Mediator Request handlers</description>
+    <properties>
+        <commons-exec.version>1.4.0</commons-exec.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -34,6 +37,11 @@
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
             <version>${httpclient5.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-exec</artifactId>
+            <version>${commons-exec.version}</version>
         </dependency>
 
     </dependencies>
