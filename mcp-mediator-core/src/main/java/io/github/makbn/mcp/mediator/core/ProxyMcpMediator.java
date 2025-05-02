@@ -12,11 +12,24 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-
+/**
+ * A specialized MCP Mediator that acts as a proxy for delegating tool requests
+ * to remote MCP servers. This class extends {@link DefaultMcpMediator} and
+ * configures itself to retrieve tool definitions from remote servers at startup.
+ *
+ * <p>This is useful in distributed systems where different parts of the application
+ * or infrastructure are exposing different sets of tools through their own MCP endpoints.</p>
+ *
+ * @author Matt Akbarian
+ */
 @Slf4j
 @FieldDefaults(level = AccessLevel.PROTECTED, makeFinal = true)
 public class ProxyMcpMediator extends DefaultMcpMediator {
 
+    /**
+     * Default constructor using a pre-configured proxy configuration builder.
+     * Initializes the proxy mediator with the default proxy configuration.
+     */
     public ProxyMcpMediator() {
         this(McpMediatorConfigurationBuilder.builder().creatProxy().build());
     }
@@ -26,6 +39,11 @@ public class ProxyMcpMediator extends DefaultMcpMediator {
 
     }
 
+    /**
+     * Delegates tool definitions to remote MCP servers as defined in the proxy configuration.
+     * This method overrides the base behavior to pass the request handler to the supper class
+     * additionally initialize and load tools from external sources (proxying).
+     */
     @Override
     protected void delegate() {
         super.delegate();
@@ -48,6 +66,12 @@ public class ProxyMcpMediator extends DefaultMcpMediator {
         log.debug("all remote MCP servers started successfully {}", mcpSyncServer);
     }
 
+    /**
+     * Initializes a connection to the given remote server and retrieves the remote tool metadata.
+     *
+     * @param server The remote MCP server configuration.
+     * @return The initialized remote MCP server instance.
+     */
     @NonNull
     private McpMediatorRemoteMcpServer getProvidedToolsByMcpServer(
             @NonNull McpMediatorProxyConfiguration.McpMediatorRemoteMcpServerConfiguration server) {
