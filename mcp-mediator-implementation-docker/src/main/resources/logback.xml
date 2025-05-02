@@ -1,5 +1,5 @@
-<configuration>
-
+<configuration debug="false">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
     <property name="DOCKER_MCP_LOG_FILE" value="logs/docker_mcp_server.log" />
     <property name="DOCKER_MCP_LOG_LEVEL" value="DEBUG" />
 
