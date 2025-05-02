@@ -56,79 +56,65 @@ To run Docker MCP Server with Claude Desktop:
 | `--help`           | Show usage and available options                       | _n/a_                          |
 
 
-### Supported CLI Tools
-| MCP Tool Name                                | Description                                                                                             |
-|---------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| docker_start_container                       | Start an existing Docker container using its containerId.                                               |
-| docker_stop_container                        | Stop an existing Docker container using its containerId.                                                |
-| docker_leave_swarm                           | Remove a node from a Docker Swarm.                                                                      |
-| docker_container_diff                        | List changes made to a container’s filesystem since creation.                                           |
-| docker_build_image_file                      | Build a Docker image from a Dockerfile or directory.                                                    |
-| docker_inspect_volume                        | Retrieve detailed information about a Docker volume by name.                                            |
-| docker_remove_service                        | Remove a Docker service by its serviceId.                                                               |
-| docker_list_containers                       | List Docker containers (optionally filtered and showing all or just running ones).                      |
-| docker_inspect_swarm                         | Inspect the current Docker Swarm details.                                                               |
-| docker_push_image                            | Push an image to a registry (authentication optional).                                                  |
-| docker_copy_archive_to_container             | Copy a tar archive into a running container.                                                            |
-| docker_stats_container                       | Retrieve real-time or snapshot statistics of a container.                                               |
-| docker_disconnect_container_from_network     | Disconnect a container from a Docker network.                                                           |
-| docker_remove_container                      | Remove a container, optionally forcibly if it's running.                                                |
+### Supported Docker Commands as MCP Server Tools
+
+| MCP Tool Name                                | Description                                    |
+| -------------------------------------------- | ---------------------------------------------- |
+| docker\_start\_container                     | Start a Docker container by ID.                |
+| docker\_stop\_container                      | Stop a Docker container by ID.                 |
+| docker\_leave\_swarm                         | Remove a node from Docker Swarm.               |
+| docker\_container\_diff                      | Show changes made to a container’s filesystem. |
+| docker\_build\_image\_file                   | Build an image from Dockerfile or directory.   |
+| docker\_inspect\_volume                      | Get details of a Docker volume.                |
+| docker\_remove\_service                      | Remove a Docker service by ID.                 |
+| docker\_list\_containers                     | List containers with optional filters.         |
+| docker\_inspect\_swarm                       | Inspect Docker Swarm details.                  |
+| docker\_push\_image                          | Push image to registry, supports auth.         |
+| docker\_copy\_archive\_to\_container         | Copy a tar archive into a running container.   |
+| docker\_stats\_container                     | Fetch container stats (CPU, memory, etc.).     |
+| docker\_disconnect\_container\_from\_network | Disconnect container from Docker network.      |
+| docker\_remove\_container                    | Remove a container, with optional force.       |
+| docker\_inspect\_service                     | Inspect a Docker service.                      |
+| docker\_remove\_secret                       | Remove a Docker secret by ID.                  |
+| docker\_pull\_image                          | Pull image from registry, supports auth.       |
+| docker\_inspect\_container                   | Inspect container config and state.            |
+| docker\_unpause\_container                   | Unpause a paused container.                    |
+| docker\_list\_images                         | List Docker images with optional filters.      |
+| docker\_list\_services                       | List all Docker services in the swarm.         |
+| docker\_remove\_image                        | Remove an image, with force and prune options. |
+| docker\_create\_network                      | Create a Docker network.                       |
+| docker\_tag\_image                           | Tag an image with a new repo and tag.          |
+| docker\_authenticate                         | Authenticate to Docker registry.               |
+| docker\_exec\_command                        | Execute a command inside a container.          |
+| docker\_remove\_swarm\_node                  | Remove a swarm node, optionally forcibly.      |
+| docker\_search\_images                       | Search Docker Hub for images.                  |
+| docker\_list\_networks                       | List all Docker networks.                      |
+| docker\_remove\_volume                       | Remove a Docker volume.                        |
+| docker\_create\_container                    | Create a container with custom settings.       |
+| docker\_remove\_network                      | Remove a Docker network.                       |
+| docker\_copy\_archive\_from\_container       | Copy files from a container to the host.       |
+| docker\_rename\_container                    | Rename a Docker container.                     |
+| docker\_pause\_container                     | Pause a running container.                     |
+| docker\_version                              | Get Docker version information.                |
+| docker\_list\_swarm\_nodes                   | List all nodes in the Docker swarm.            |
+| docker\_log\_container                       | Retrieve logs from a container.                |
+| docker\_prune                                | Prune unused Docker resources.                 |
+| docker\_inspect\_network                     | Get detailed info about a network.             |
+| docker\_kill\_container                      | Send a kill signal to a container.             |
+| docker\_top\_container                       | Get running processes in a container.          |
+| docker\_list\_volumes                        | List Docker volumes with optional filters.     |
+| docker\_update\_swarm\_node                  | Update the config of a swarm node.             |
+| docker\_info                                 | Show Docker system-wide info.                  |
+| docker\_log\_service                         | Get logs from a Docker service.                |
+
+Work in progress, more to be added.
+
 
 ### DockerClientService Function Coverage
-<details>
-<summary>List of all supported functionality and the current state of implementation</summary>
-| Function Name                                | MCP Tool Name                            | Status        |
-|---------------------------------------------|------------------------------------------|---------------|
-| startContainerCmd                            | docker_start_container                   | ✅ Implemented |
-| stopContainerCmd                             | docker_stop_container                    | ✅ Implemented |
-| leaveSwarmCmd                                | docker_leave_swarm                       | ✅ Implemented |
-| attachContainerCmd                           | N/A                                      | ❌ Not Yet     |
-| containerDiffCmd                             | docker_container_diff                    | ✅ Implemented |
-| buildImageCmd                                | docker_build_image_file                  | ✅ Implemented |
-| inspectVolumeCmd                             | docker_inspect_volume                    | ✅ Implemented |
-| removeServiceCmd                             | docker_remove_service                    | ✅ Implemented |
-| listContainersCmd                            | docker_list_containers                   | ✅ Implemented |
-| inspectSwarmCmd                              | docker_inspect_swarm                     | ✅ Implemented |
-| pushImageCmd                                 | docker_push_image                        | ✅ Implemented |
-| copyArchiveToContainerCmd                    | docker_copy_archive_to_container         | ✅ Implemented |
-| statsCmd                                     | docker_stats_container                   | ✅ Implemented |
-| disconnectFromNetworkCmd                     | docker_disconnect_container_from_network | ✅ Implemented |
-| removeContainerCmd                           | docker_remove_container                  | ✅ Implemented |
-| inspectServiceCmd                            | N/A                                      | ❌ Not Yet     |
-| removeSecretCmd                              | N/A                                      | ❌ Not Yet     |
-| pullImageCmd                                 | N/A                                      | ❌ Not Yet     |
-| inspectContainerCmd                          | N/A                                      | ❌ Not Yet     |
-| unpauseContainerCmd                          | N/A                                      | ❌ Not Yet     |
-| listImagesCmd                                | N/A                                      | ❌ Not Yet     |
-| listServicesCmd                              | N/A                                      | ❌ Not Yet     |
-| resizeExecCmd                                | N/A                                      | ❌ Not Yet     |
-| listSecretsCmd                               | N/A                                      | ❌ Not Yet     |
-| removeImageCmd                               | N/A                                      | ❌ Not Yet     |
-| createNetworkCmd                             | N/A                                      | ❌ Not Yet     |
-| tagImageCmd                                  | N/A                                      | ❌ Not Yet     |
-| authCmd                                      | N/A                                      | ❌ Not Yet     |
-| execCreateCmd                                | N/A                                      | ❌ Not Yet     |
-| removeSwarmNodeCmd                           | N/A                                      | ❌ Not Yet     |
-| inspectConfigCmd                             | N/A                                      | ❌ Not Yet     |
-| searchImagesCmd                              | N/A                                      | ❌ Not Yet     |
-| listNetworksCmd                              | N/A                                      | ❌ Not Yet     |
-| pingCmd                                      | N/A                                      | ❌ Not Yet     |
-| logTaskCmd                                   | N/A                                      | ❌ Not Yet     |
-| loadImageAsyncCmd                            | N/A                                      | ❌ Not Yet     |
-| updateSwarmCmd                               | N/A                                      | ❌ Not Yet     |
-| removeVolumeCmd                              | N/A                                      | ❌ Not Yet     |
-| close                                        | N/A                                      | ❌ Not Yet     |
-| createContainerCmd                           | N/A                                      | ❌ Not Yet     |
-| buildImageCmd(InputStream)                   | N/A                                      | ❌ Not Yet     |
-| loadImageCmd                                 | N/A                                      | ❌ Not Yet     |
-| listTasksCmd                                 | N/A                                      | ❌ Not Yet     |
-| saveImagesCmd                                | N/A                                      | ❌ Not Yet     |
-| joinSwarmCmd                                 | N/A                                      | ❌ Not Yet     |
-| createVolumeCmd                              | N/A                                      | ❌ Not Yet     |
-| buildImageCmd()                              | N/A                                      | ❌ Not Yet     |
-| saveImageCmd                                 | N/A                                      | ❌ Not Yet     |
+ Check the [DockerClientService](./blob/master/mcp-mediator-implementation-docker/src/main/java/io/github/makbn/mcp/mediator/docker/internal/DockerClientService.java) class for the full list of available and planned tools (to be implemented)
 
-</details>
+> [!IMPORTANT]  
+> Almost all the MCP Tools' descriptions and names are generated automatically using AI agent! 
 
 
 ### 🧩 Repository Structure and Git Subtree Setup
