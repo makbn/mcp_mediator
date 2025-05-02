@@ -4,15 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import io.github.makbn.mcp.mediator.core.util.McpUtils;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 
 import javax.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Collection;
@@ -32,7 +35,7 @@ import java.util.Set;
 @RequiredArgsConstructor(staticName = "of")
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class McpMethodSchemaGenerator {
-    public static final String TYPE = "object";
+    public static final String OBJECT = "object";
     public static final String VALUE = "value";
     public static final String TYPE_KEY = "type";
     public static final String PROPERTIES_KEY = "properties";
@@ -42,8 +45,18 @@ public class McpMethodSchemaGenerator {
             Long.class, long.class, Float.class, float.class,
             Double.class, double.class, Boolean.class, boolean.class
     );
+    public static final String STRING = "string";
+    public static final String ITEMS_KEY = "items";
+    public static final String ARRAY = "array";
+    public static final String ID_KEY = "id";
+    public static final String INTEGER = "integer";
+    public static final String BOOLEAN = "boolean";
+    public static final String NUMBER = "number";
+    public static final String REQUIRED_KEY = "required";
 
     ObjectMapper mapper;
+    @NonFinal
+    JsonSchemaGenerator schemaGenerator;
 
     /**
      * Generates a JSON Schema for the provided method's parameters.
@@ -56,9 +69,9 @@ public class McpMethodSchemaGenerator {
     @NonNull
     public String generateSchemaForMethod(Method method) throws JsonProcessingException {
         ObjectNode schema = mapper.createObjectNode();
-        schema.put(TYPE_KEY, TYPE);
-        schema.put("id", "urn:jsonschema:" + method.getDeclaringClass()
-                .getName().replace('.', ':') + ":" + method.getName());
+        schema.put(TYPE_KEY, OBJECT);
+        schema.put(ID_KEY, ("urn:jsonschema:" + method.getDeclaringClass()
+                .getName().replace('.', ':') + ":" + method.getName()).toLowerCase());
 
         ObjectNode propertiesNode = mapper.createObjectNode();
         ArrayNode requiredArray = mapper.createArrayNode();
@@ -75,7 +88,7 @@ public class McpMethodSchemaGenerator {
 
         schema.set(PROPERTIES_KEY, propertiesNode);
         if (!requiredArray.isEmpty()) {
-            schema.set("required", requiredArray);
+            schema.set(REQUIRED_KEY, requiredArray);
         }
 
         return mapper.writeValueAsString(schema);
@@ -87,6 +100,7 @@ public class McpMethodSchemaGenerator {
      * @param parameter the method parameter
      * @return the JSON schema node describing the parameter
      */
+    @SneakyThrows
     @NonNull
     private ObjectNode describeParameter(Parameter parameter) {
         ObjectNode paramSchema = mapper.createObjectNode();
@@ -95,14 +109,16 @@ public class McpMethodSchemaGenerator {
         if (isPrimitiveOrWrapper(type)) {
             paramSchema.put(TYPE_KEY, mapJavaTypeToJsonType(type));
         } else if (Collection.class.isAssignableFrom(type)) {
-            paramSchema.put(TYPE_KEY, "array");
-            paramSchema.set("items", mapper.createObjectNode().put(TYPE_KEY, TYPE)); // You can dig deeper if needed
+            paramSchema.put(TYPE_KEY, ARRAY);
+            paramSchema.set(ITEMS_KEY, mapper.createObjectNode().put(TYPE_KEY, OBJECT)); // You can dig deeper if needed
         } else if (Map.class.isAssignableFrom(type)) {
-            paramSchema.put(TYPE_KEY, TYPE);
+            paramSchema.put(TYPE_KEY, OBJECT);
         } else {
             // Complex nested type
-            paramSchema.put(TYPE_KEY, TYPE);
-            paramSchema.set(PROPERTIES_KEY, describeClassProperties(type));
+            paramSchema.put(TYPE_KEY, OBJECT);
+            JsonSchema schema = getSchemaGenerator().generateSchema(type);
+            paramSchema.put(ID_KEY, schema.getId());
+            paramSchema.set(PROPERTIES_KEY, mapper.valueToTree(schema.asObjectSchema().getProperties()));
         }
 
         // Handle validation annotations
@@ -111,38 +127,12 @@ public class McpMethodSchemaGenerator {
         return paramSchema;
     }
 
-    /**
-     * Describes all properties of a class and generates a schema for them.
-     *
-     * @param clazz the class to describe
-     * @return a JSON schema node representing the class fields
-     */
-    @NonNull
-    private  ObjectNode describeClassProperties(Class<?> clazz) {
-        ObjectNode propertiesNode = mapper.createObjectNode();
-        for (Field field : clazz.getDeclaredFields()) {
-            ObjectNode fieldSchema = mapper.createObjectNode();
-            Class<?> fieldType = field.getType();
 
-            if (isPrimitiveOrWrapper(fieldType)) {
-                fieldSchema.put(TYPE_KEY, mapJavaTypeToJsonType(fieldType));
-            } else if (Collection.class.isAssignableFrom(fieldType)) {
-                fieldSchema.put(TYPE_KEY, "array");
-                fieldSchema.set("items", mapper.createObjectNode().put(TYPE_KEY, TYPE));
-            } else if (Map.class.isAssignableFrom(fieldType)) {
-                fieldSchema.put(TYPE_KEY, TYPE);
-            } else {
-                // Recursively handle nested classes
-                fieldSchema.put(TYPE_KEY, TYPE);
-                fieldSchema.set(PROPERTIES_KEY, describeClassProperties(fieldType));
-            }
-
-            // Handle validation annotations if any
-            addValidationConstraints(fieldSchema, field.getAnnotations());
-
-            propertiesNode.set(field.getName(), fieldSchema);
+    private JsonSchemaGenerator getSchemaGenerator() {
+        if (schemaGenerator == null) {
+            schemaGenerator = new JsonSchemaGenerator(mapper);
         }
-        return propertiesNode;
+        return schemaGenerator;
     }
 
     /**
@@ -200,13 +190,13 @@ public class McpMethodSchemaGenerator {
      * @return the JSON type as a string
      */
     private static String mapJavaTypeToJsonType(Class<?> clazz) {
-        if (clazz == String.class) return "string";
+        if (clazz == String.class) return STRING;
         if (clazz == Integer.class || clazz == int.class || clazz == Long.class || clazz == long.class)
-            return "integer";
+            return INTEGER;
         if (clazz == Float.class || clazz == float.class || clazz == Double.class || clazz == double.class)
-            return "number";
-        if (clazz == Boolean.class || clazz == boolean.class) return "boolean";
-        return "string";
+            return NUMBER;
+        if (clazz == Boolean.class || clazz == boolean.class) return BOOLEAN;
+        return STRING;
     }
 
     /**
