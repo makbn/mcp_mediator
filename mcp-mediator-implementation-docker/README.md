@@ -111,7 +111,7 @@ Work in progress, more to be added.
 
 
 ### DockerClientService Function Coverage
- Check the [DockerClientService](./blob/master/mcp-mediator-implementation-docker/src/main/java/io/github/makbn/mcp/mediator/docker/internal/DockerClientService.java) class for the full list of available and planned tools (to be implemented)
+ Check the [DockerClientService](./src/main/java/io/github/makbn/mcp/mediator/docker/internal/DockerClientService.java) class for the full list of available and planned tools (to be implemented)
 
 > [!IMPORTANT]  
 > Almost all the MCP Tools' descriptions and names are generated automatically using AI agent! 
