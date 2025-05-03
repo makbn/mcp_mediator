@@ -45,6 +45,7 @@
         <module>mcp-mediator-implementation-docker</module>
         <module>mcp-mediator-implementation-dropbox</module>
         <module>mcp-mediator-example</module>
+        <module>mcp-mediator-inspector</module>
     </modules>
 
     <dependencyManagement>
