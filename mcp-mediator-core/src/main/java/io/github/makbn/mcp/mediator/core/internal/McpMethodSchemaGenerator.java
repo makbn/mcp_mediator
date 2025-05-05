@@ -115,10 +115,9 @@ public class McpMethodSchemaGenerator {
             paramSchema.put(TYPE_KEY, OBJECT);
         } else {
             // Complex nested type
-            paramSchema.put(TYPE_KEY, OBJECT);
             JsonSchema schema = getSchemaGenerator().generateSchema(type);
+            paramSchema = mapper.valueToTree(schema);
             paramSchema.put(ID_KEY, schema.getId());
-            paramSchema.set(PROPERTIES_KEY, mapper.valueToTree(schema.asObjectSchema().getProperties()));
         }
 
         // Handle validation annotations
