@@ -18,13 +18,27 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Responsible for establishing a connection to a remote MCP (Model Context Protocol) server,
+ * initializing the connection, and adapting its available tools into the MCP Mediator format.
+ * <p>
+ * This class supports multiple transport types (e.g., SSE, STDIO), declares supported client capabilities,
+ * and provides access to remote tools in a structured form.
+ *
+ * @author Matt Akbarian
+ */
 @Slf4j
 @RequiredArgsConstructor(staticName = "of")
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class McpRemoteServerToolAdapter {
+public class McpRemoteServerConnector {
     McpLifecycleInitializationRequest request;
 
-
+    /**
+     * Connects to the remote MCP server and loads all available tools.
+     *
+     * @return a {@link McpMediatorRemoteMcpServer} containing wrapped tools
+     * @throws McpMediatorException if connection or tool loading fails
+     */
     @NonNull
     public McpMediatorRemoteMcpServer getRemoteServer() {
         log.debug("connecting to {}", request.getRemoteServer());
@@ -36,6 +50,13 @@ public class McpRemoteServerToolAdapter {
                 .toList());
     }
 
+    /**
+     * Initializes a synchronous MCP client connection using the provided request parameters.
+     * Configures transport, client info, timeouts, capabilities, and logging.
+     *
+     * @return an initialized {@link McpSyncClient}
+     * @throws McpMediatorException if initialization fails
+     */
     @NonNull
     private synchronized McpSyncClient initializeConnection() {
         try {
@@ -57,6 +78,12 @@ public class McpRemoteServerToolAdapter {
         }
     }
 
+    /**
+     * Constructs and declares the set of client capabilities supported by this connector.
+     * Currently, supports {@link McpRoots} and {@link McpSampling}.
+     *
+     * @return a configured {@link McpSchema.ClientCapabilities} object
+     */
     @NonNull
     private McpSchema.ClientCapabilities createCapabilities() {
         McpSchema.ClientCapabilities.Builder capabilities = McpSchema.ClientCapabilities.builder();
@@ -72,6 +99,13 @@ public class McpRemoteServerToolAdapter {
         return capabilities.build();
     }
 
+    /**
+     * Creates the appropriate transport instance based on the requested transport type
+     * (e.g., SSE or STDIO).
+     *
+     * @return a valid {@link McpClientTransport} for use with the MCP client
+     * @throws UnsupportedOperationException if the transport type is not supported
+     */
     @NonNull
     private McpClientTransport createTransportType() {
         if (request.getRemoteServer().getRemoteTransportType() == McpTransportType.SSE) {
@@ -85,6 +119,12 @@ public class McpRemoteServerToolAdapter {
         }
     }
 
+    /**
+     * Constructs server parameters used for STDIO transport including command, arguments,
+     * and environment variables.
+     *
+     * @return a {@link ServerParameters} object containing startup details
+     */
     @NonNull
     private ServerParameters createServerParameters() {
         return ServerParameters.builder(request.getRemoteServer().getCommand())

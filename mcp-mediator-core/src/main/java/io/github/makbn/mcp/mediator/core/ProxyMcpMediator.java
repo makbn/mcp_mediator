@@ -4,7 +4,7 @@ import io.github.makbn.mcp.mediator.core.configuration.McpMediatorConfigurationB
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorProxyConfiguration;
 import io.github.makbn.mcp.mediator.core.internal.McpLifecycleInitializationRequest;
 import io.github.makbn.mcp.mediator.core.internal.McpMediatorRemoteMcpServer;
-import io.github.makbn.mcp.mediator.core.internal.McpRemoteServerToolAdapter;
+import io.github.makbn.mcp.mediator.core.internal.McpRemoteServerConnector;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
@@ -85,7 +85,7 @@ public class ProxyMcpMediator extends DefaultMcpMediator {
                 .remoteServer(server)
                 .build();
 
-        return McpRemoteServerToolAdapter.of(request)
+        return McpRemoteServerConnector.of(request)
                 .getRemoteServer();
     }
 
