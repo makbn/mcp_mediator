@@ -1,0 +1,3 @@
+[submodule "mcp-mediator-implementation-docker"]
+	path = mcp-mediator-implementation-docker
+	url = https://github.com/makbn/docker_mcp_server.git
