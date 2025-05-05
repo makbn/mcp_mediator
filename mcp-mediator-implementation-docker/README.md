@@ -4,6 +4,8 @@ This module provides a Docker-based implementation of an MCP (Message Communicat
 
 It acts as a pluggable server that leverages Docker's API to handle MCP messages using mediator-driven handler registration and execution.
 
+![](./.github/static/docker_mcp_server_inspect.png)
+
 ### Usage Examples
 
 ```shell
