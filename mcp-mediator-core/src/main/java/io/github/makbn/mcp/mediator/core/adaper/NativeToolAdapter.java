@@ -12,6 +12,15 @@ import lombok.experimental.FieldDefaults;
 
 import java.io.IOException;
 
+/**
+ * Adapter class for processing {@link McpSchema.Tool} and extracting metadata and schema information.
+ * <p>
+ * This class wraps around a {@link McpSchema.Tool} implementation to extract method names, descriptions,
+ * and schema definitions for use in the MCP Mediator.
+ * </p>
+ *
+ * @author Matt Akbarian
+ */
 @Builder
 @RequiredArgsConstructor(staticName = "of")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
