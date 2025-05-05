@@ -18,7 +18,7 @@ java -jar docker-mcp-server.jar \
 ```
 
 
-To run Docker MCP Server with Claude Desktop:
+To run Docker MCP Server with Claude Desktop with `java -jar`:
 ```yaml
 {
   "mcpServers": {
@@ -26,6 +26,7 @@ To run Docker MCP Server with Claude Desktop:
       "command": "java",
       "args": [
         "-jar",
+        "docker-mcp-server.jar"
         "--docker-host=tcp://localhost:2376",
         "--tls-verify", # not required
         "--cert-path=/etc/docker/certs", # required only if --tls-verify is available
@@ -39,6 +40,32 @@ To run Docker MCP Server with Claude Desktop:
 }
 ```
 
+Or create the native image (see the steps below) and use the standalone application:
+```yaml
+{
+  "mcpServers": {
+    "my_java_mcp_server": {
+      "command": "docker-mcp-server-executable",
+      "args": [
+        "--docker-host=tcp://localhost:2376" // rest of args 
+      ]
+    }
+  }
+}
+```
+
+### How to Build
+To build the executable:
+```bash
+mvn clean compile package
+```
+This command creates a jar file under `target` folder `mcp-mediator-implementation-docker-[version].jar`. You can stop here and use the jar file and execute it
+using `java -jar` command. Or, you can create a standalone executable application using GraalVM native image:
+
+```bash
+ native-image -jar mcp-mediator-implementation-docker-[version].jar     
+```
+and this command creates an executable file: `'mcp-mediator-implementation-docker-[version]` that can be executed.
 
 ### Supported CLI Options
 
