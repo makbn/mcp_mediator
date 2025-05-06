@@ -16,6 +16,8 @@ import java.util.Map;
  * <p>
  * It maintains a set of supported {@link NativeToolAdapter} instances and
  * ensures that only authorized tools are called remotely.
+ *
+ * @author Matt Akbarian
  */
 @Getter
 @ToString

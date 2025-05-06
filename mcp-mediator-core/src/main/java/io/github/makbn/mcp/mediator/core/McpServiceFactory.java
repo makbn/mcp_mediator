@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
+@SuppressWarnings({"rawtypes", "java:S1452"})
 @RequiredArgsConstructor(staticName = "create")
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -70,7 +70,7 @@ public class McpServiceFactory {
     private static McpServiceRequestHandler createServiceHandler(
             boolean createForAll, Object service, McpService serviceAnnotation) {
         return new McpServiceRequestHandler() {
-            private static final Logger log = LoggerFactory.getLogger(McpServiceRequestHandler.class);
+            private static final Logger log = LoggerFactory.getLogger("McpServiceRequestHandler");
             private Map<? extends McpServiceRequest, McpMethodAdapter> adapterMap;
             private Object internalService;
 
@@ -115,6 +115,7 @@ public class McpServiceFactory {
             }
 
             @Override
+            @SuppressWarnings("java:S6204")
             public Collection<Class<? extends McpMediatorRequest>> getAllSupportedRequestClass() {
                 return adapterMap.keySet().stream().map(McpServiceRequest::getClass).collect(Collectors.toList());
             }
