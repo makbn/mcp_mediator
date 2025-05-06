@@ -1,7 +1,8 @@
-# MCP Mediator
+# MCP Mediator – Automatic MCP Server Generation
 
-A Java-based implementation of the Model Context Protocol (MCP) mediator, providing seamless integration between MCP clients and servers. 
-This project enables efficient communication and tool execution in the MCP ecosystem.
+This Java-based project provides an implementation of a Model Context Protocol (MCP) mediator that automatically generates an MCP Server by leveraging existing source code, service classes, helper methods, and external MCP tools. The MCP Mediator aggregates these diverse components into a unified system, streamlining communication between MCP clients and servers.
+
+By eliminating the need to manually maintain multiple MCP Servers, this tool simplifies integration and execution within the MCP ecosystem—enhancing efficiency, consistency, and maintainability.
 
 ![MCP Mediator High Level Diagram](https://github.com/makbn/mcp_mediator/blob/master/.github/static/mcp_mediator_high_level_dark.drawio.png?raw=true#gh-dark-mode-only)
 ![MCP Mediator High Level Diagram](https://github.com/makbn/mcp_mediator/blob/master/.github/static/mcp_mediator_high_level_light.drawio.png?raw=true#gh-light-mode-only)
