@@ -49,11 +49,24 @@ public class McpServiceFactory {
     }
 
     Object service;
+    Set<String> excludedMethods = new HashSet<>();
+
     @NonFinal
     boolean createForNonAnnotatedMethods = false;
 
+
     public McpServiceFactory createForNonAnnotatedMethods(boolean createForNonAnnotatedMethods) {
         this.createForNonAnnotatedMethods = createForNonAnnotatedMethods;
+        return this;
+    }
+
+    public McpServiceFactory excludeMethod(@NonNull String methodName) {
+        this.excludedMethods.add(methodName);
+        return this;
+    }
+
+    public McpServiceFactory excludeMethods(@NonNull Collection<String> methodName) {
+        this.excludedMethods.addAll(methodName);
         return this;
     }
 
@@ -63,12 +76,12 @@ public class McpServiceFactory {
         }
         McpService serviceAnnotation = Objects.requireNonNull(service.getClass().getAnnotation(McpService.class));
 
-        return createServiceHandler(createForNonAnnotatedMethods, service, serviceAnnotation);
+        return createServiceHandler(excludedMethods, createForNonAnnotatedMethods, service, serviceAnnotation);
     }
 
 
-    private static McpServiceRequestHandler createServiceHandler(
-            boolean createForAll, Object service, McpService serviceAnnotation) {
+    private static McpServiceRequestHandler createServiceHandler(Set<String> excludedMethods,
+            boolean createForNonAnnotated, Object service, McpService serviceAnnotation) {
         return new McpServiceRequestHandler() {
             private static final Logger log = LoggerFactory.getLogger("McpServiceRequestHandler");
             private Map<? extends McpServiceRequest, McpMethodAdapter> adapterMap;
@@ -80,7 +93,8 @@ public class McpServiceFactory {
                 ObjectMapper mapper = getObjectMapper(args);
                 this.internalService = service;
                 this.adapterMap = Arrays.stream(service.getClass().getDeclaredMethods())
-                        .filter(method -> createForAll || method.isAnnotationPresent(McpTool.class))
+                        .filter(method -> createForNonAnnotated || method.isAnnotationPresent(McpTool.class))
+                        .filter(method -> !excludedMethods.contains(method.getName()))
                         .map(method -> new McpMethodAdapter(method, mapper))
                         .peek(adapter -> log.debug("Mapped method: {} to: {}", adapter.getMethod(), adapter.getSourceTool()))
                         .collect(Collectors.toMap(this::convertToRequest, Function.identity()));
@@ -94,13 +108,14 @@ public class McpServiceFactory {
             @Override
             public Object handle(McpMediatorRequest request) throws McpMediatorException {
                 McpServiceRequest mcpServiceRequest = (McpServiceRequest) request;
+                McpMethodAdapter adapter = findAdapter(request);
 
                 Object[] parameters = McpMethodArgumentResolver.resolveArguments(
-                        findAdapter(request).getSourceTool(), mcpServiceRequest);
+                        adapter.getSourceTool(), mcpServiceRequest);
                 try {
-                    return findAdapter(request).getSourceTool().invoke(internalService, parameters);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new McpMediatorException("Failed to invoke method for:", e);
+                    return adapter.getSourceTool().invoke(internalService, parameters);
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                    throw new McpMediatorException(generateMessage(e, adapter), e);
                 }
 
             }
@@ -164,5 +179,19 @@ public class McpServiceFactory {
                 return mapper;
             }
         };
+    }
+
+    private static String generateMessage(Exception e, McpMethodAdapter adapter) {
+        StringBuilder cause = new StringBuilder();
+        Throwable causeException = e;
+        while (causeException != null) {
+            if (causeException.getMessage() != null && !causeException.getMessage().isBlank()) {
+                cause.insert(0, String.format("%n%s %s", "->", causeException.getMessage().trim()));
+            }else {
+                cause.insert(0, String.format("%n%s %s", "->", causeException.getClass().getSimpleName()));
+            }
+            causeException =  causeException.getCause();
+        }
+        return "Failed to invoke method for [" + adapter.getMethod() + "]:" + cause;
     }
 }
