@@ -25,28 +25,30 @@ import java.util.function.Function;
  */
 @SuppressWarnings("java:S4276")
 public class McpMethodArgumentResolver {
-    /** Registry of type converters for primitives, wrappers, and String. */
+    /**
+     * Registry of type converters for primitives, wrappers, and String.
+     */
     private static final Map<Class<?>, Function<Object, Object>> TYPE_CONVERTERS = new HashMap<>();
 
     static {
         // Register converters for primitives and wrappers
-        TYPE_CONVERTERS.put(int.class, value -> Integer.parseInt(value.toString()));
-        TYPE_CONVERTERS.put(Integer.class, value -> Integer.valueOf(value.toString()));
-        TYPE_CONVERTERS.put(long.class, value -> Long.parseLong(value.toString()));
-        TYPE_CONVERTERS.put(Long.class, value -> Long.valueOf(value.toString()));
-        TYPE_CONVERTERS.put(double.class, value -> Double.parseDouble(value.toString()));
-        TYPE_CONVERTERS.put(Double.class, value -> Double.valueOf(value.toString()));
-        TYPE_CONVERTERS.put(float.class, value -> Float.parseFloat(value.toString()));
-        TYPE_CONVERTERS.put(Float.class, value -> Float.valueOf(value.toString()));
-        TYPE_CONVERTERS.put(boolean.class, value -> Boolean.parseBoolean(value.toString()));
-        TYPE_CONVERTERS.put(Boolean.class, value -> Boolean.valueOf(value.toString()));
-        TYPE_CONVERTERS.put(short.class, value -> Short.parseShort(value.toString()));
-        TYPE_CONVERTERS.put(Short.class, value -> Short.valueOf(value.toString()));
-        TYPE_CONVERTERS.put(byte.class, value -> Byte.parseByte(value.toString()));
-        TYPE_CONVERTERS.put(Byte.class, value -> Byte.valueOf(value.toString()));
-        TYPE_CONVERTERS.put(char.class, value -> value.toString().charAt(0));
-        TYPE_CONVERTERS.put(Character.class, value -> value.toString().charAt(0));
-        TYPE_CONVERTERS.put(String.class, Object::toString);
+        TYPE_CONVERTERS.put(int.class, value -> value == null ? 0 : Integer.parseInt(value.toString()));
+        TYPE_CONVERTERS.put(Integer.class, value -> value == null ? null : Integer.valueOf(value.toString()));
+        TYPE_CONVERTERS.put(long.class, value -> value == null ? 0L : Long.parseLong(value.toString()));
+        TYPE_CONVERTERS.put(Long.class, value -> value == null ? null : Long.valueOf(value.toString()));
+        TYPE_CONVERTERS.put(double.class, value -> value == null ? 0D : Double.parseDouble(value.toString()));
+        TYPE_CONVERTERS.put(Double.class, value -> value == null ? null : Double.valueOf(value.toString()));
+        TYPE_CONVERTERS.put(float.class, value -> value == null ? 0F : Float.parseFloat(value.toString()));
+        TYPE_CONVERTERS.put(Float.class, value -> value == null ? null : Float.valueOf(value.toString()));
+        TYPE_CONVERTERS.put(boolean.class, value -> value != null && Boolean.parseBoolean(value.toString()));
+        TYPE_CONVERTERS.put(Boolean.class, value -> value == null ? null : Boolean.valueOf(value.toString()));
+        TYPE_CONVERTERS.put(short.class, value -> value == null ? 0 : Short.parseShort(value.toString()));
+        TYPE_CONVERTERS.put(Short.class, value -> value == null ? null : Short.valueOf(value.toString()));
+        TYPE_CONVERTERS.put(byte.class, value -> value == null ? 0 : Byte.parseByte(value.toString()));
+        TYPE_CONVERTERS.put(Byte.class, value -> value == null ? null : Byte.valueOf(value.toString()));
+        TYPE_CONVERTERS.put(char.class, value -> value == null ? ' ' : value.toString().charAt(0));
+        TYPE_CONVERTERS.put(Character.class, value -> value == null ? null : value.toString().charAt(0));
+        TYPE_CONVERTERS.put(String.class, value -> value == null ? null : value.toString());
     }
 
     /**
@@ -78,13 +80,10 @@ public class McpMethodArgumentResolver {
      *
      * @param targetType the expected parameter type
      * @param value      the raw value to be converted
-     * @return the converted value, or {@code null} if the input value is {@code null}
+     * @return the converted value, or default value if the input value is {@code null}
      */
     @Nullable
     private static Object convertValue(Class<?> targetType, @Nullable Object value) {
-        if (value == null) {
-            return null;
-        }
         Function<Object, Object> converter = TYPE_CONVERTERS.get(targetType);
         if (converter != null) {
             return converter.apply(value);
