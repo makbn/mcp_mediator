@@ -157,7 +157,7 @@ public class DefaultMcpMediator implements McpMediator {
                     return handler.handle(request);
                 } catch (Exception e) {
                     log.error("Failed to execute request {}", request, e);
-                    throw new McpMediatorException(String.format("Failed to execute request %s", request), e);
+                    throw new McpMediatorException(e.getMessage(), e);
                 } finally {
                     McpExecutionContext.remove();
                 }
@@ -168,7 +168,7 @@ public class DefaultMcpMediator implements McpMediator {
         try {
             return executionSyncedResult.get();
         } catch (ExecutionException e) {
-            throw new McpMediatorException(String.format("Failed to execute request %s", request), e);
+            throw new McpMediatorException(String.format("Failed to execute request [%s]: %s", request, e.getMessage()), e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             String message = String.format("Internal handler execution interrupted! interrupting mediator! request: %s", request);
@@ -201,7 +201,7 @@ public class DefaultMcpMediator implements McpMediator {
 
         if (notifyClients) {
             mcpSyncServer.notifyToolsListChanged();
-            log.debug("all tools registered successfully {}", mcpSyncServer);
+            log.debug("All tools registered successfully {}", mcpSyncServer);
         }
     }
 
@@ -221,6 +221,7 @@ public class DefaultMcpMediator implements McpMediator {
                         return functionToCall.apply(stringObjectMap);
                     } catch (Exception e) {
                         log.error("Failed to execute the request, sending error to client", e);
+                        mcpSyncServerExchange.loggingNotification(new McpSchema.LoggingMessageNotification(McpSchema.LoggingLevel.DEBUG, e.getMessage(), e.getStackTrace().toString()));
                         return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent(e.getMessage())), true);
                     }
                 });
@@ -265,7 +266,7 @@ public class DefaultMcpMediator implements McpMediator {
             return new McpSchema.CallToolResult(
                     List.of(new McpSchema.TextContent(serialize(mcpMediatorResult))), false);
         } catch (IOException e) {
-            throw new McpMediatorException("Failed to execute request", e);
+            throw new McpMediatorException(e.getMessage(), e);
         }
     }
 
