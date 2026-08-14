@@ -19,7 +19,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <spring.version>6.2.6</spring.version>
         <spring.boot.version>3.4.4</spring.boot.version>
-        <spring-ai.version>1.0.0-M7</spring-ai.version>
+        <spring-ai.version>1.0.0</spring-ai.version>
         <slf4j.version>2.0.17</slf4j.version>
         <lombok.version>1.18.38</lombok.version>
         <mcp-bom.version>0.9.0</mcp-bom.version>
