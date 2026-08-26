@@ -3,7 +3,11 @@ package io.github.makbn.mcp.mediator.core.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.makbn.mcp.mediator.api.McpMediatorConfigurationSpec;
+import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
+import io.github.makbn.mcp.mediator.api.DefaultMcpMediatorExceptionHandler;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
+import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
+import io.github.makbn.mcp.mediator.api.DefaultMcpMediatorExceptionHandler;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -120,6 +124,11 @@ public final class McpMediatorDefaultConfigurationBuilder {
     }
 
     @NonNull
+    public McpMediatorDefaultConfigurationBuilder exceptionHandler(@NonNull McpMediatorExceptionHandler exceptionHandler) {
+        this.configuration.setExceptionHandler(exceptionHandler);
+        return this;
+    }
+
     public McpMediatorDefaultConfigurationBuilder serverAddress(@NonNull String serverAddress) {
         this.configuration.setServerAddress(serverAddress);
         return this;

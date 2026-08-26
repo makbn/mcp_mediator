@@ -3,6 +3,8 @@ package io.github.makbn.mcp.mediator.core.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.makbn.mcp.mediator.api.McpMediatorConfigurationSpec;
+import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
+import io.github.makbn.mcp.mediator.api.DefaultMcpMediatorExceptionHandler;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -46,6 +48,9 @@ public sealed class McpMediatorDefaultConfiguration implements McpMediatorConfig
     McpTransportType transportType = McpTransportType.STDIO;
     @Builder.Default
     boolean toolsEnabled = true;
+
+    @Builder.Default
+    McpMediatorExceptionHandler exceptionHandler = new DefaultMcpMediatorExceptionHandler();
 
     /**
      * Specific to {@link McpTransportType#SSE} transport mode.

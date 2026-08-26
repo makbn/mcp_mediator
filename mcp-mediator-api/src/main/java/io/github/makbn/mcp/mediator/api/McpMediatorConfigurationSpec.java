@@ -56,6 +56,13 @@ public interface McpMediatorConfigurationSpec {
     boolean isToolsEnabled();
 
     /**
+     * Returns the exception handler used by the MCP Mediator.
+     *
+     * @return the exception handler
+     */
+    McpMediatorExceptionHandler getExceptionHandler();
+
+    /**
      * Indicates whether the Prompts capability of your MCP server is available.
      * @return {@code true} if tools are enabled, {@code false} otherwise
      */

@@ -36,7 +36,7 @@ Wiki page is organized as follows:
 
 :hourglass_flowing_sand: Work In Progress:
 -  Spring Framework and Spring Boot integration
--  Comprehensive error handling
+- ~~Comprehensive error handling~~ (Done)
 - ~~Docker Implementation~~ (Done)
 - ~~Dropbox Implementation~~ (Done)
 

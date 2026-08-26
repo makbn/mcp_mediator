@@ -223,8 +223,16 @@ public class DefaultMcpMediator implements McpMediator {
                         return functionToCall.apply(callToolRequest);
                     } catch (Exception e) {
                         log.error("Failed to execute the request, sending error to client", e);
+                        String errorMessage = e.getMessage();
+                        if (configuration.getExceptionHandler() != null) {
+                            try {
+                                errorMessage = configuration.getExceptionHandler().handleException(null, e);
+                            } catch (Exception ex) {
+                                log.error("Exception handler failed", ex);
+                            }
+                        }
                         mcpSyncServerExchange.loggingNotification(new McpSchema.LoggingMessageNotification(McpSchema.LoggingLevel.DEBUG, e.getMessage(), e.getStackTrace().toString()));
-                        return McpSchema.CallToolResult.builder().content(List.of(new McpSchema.TextContent(e.getMessage()))).isError(true).build();
+                        return McpSchema.CallToolResult.builder().content(List.of(new McpSchema.TextContent(errorMessage))).isError(true).build();
                     }
                 });
     }
@@ -265,17 +273,30 @@ public class DefaultMcpMediator implements McpMediator {
     private McpSchema.CallToolResult executeClientCall(
             McpSchema.CallToolRequest mcpClientRequest,
             Class<? extends McpMediatorRequest<?>> mcpMediatorRequestType) {
+        McpMediatorRequest<?> mcpMediatorRequest = null;
         try {
-            McpMediatorRequest<?> mcpMediatorRequest = configuration.getSerializer()
+            mcpMediatorRequest = configuration.getSerializer()
                     .convertValue(mcpClientRequest.arguments(), mcpMediatorRequestType);
             Object mcpMediatorResult = execute(mcpMediatorRequest);
 
             return McpSchema.CallToolResult.builder()
-                    .content(List.of(new McpSchema.TextContent(serialize(mcpMediatorResult))))
+                    .content(java.util.List.of(new McpSchema.TextContent(serialize(mcpMediatorResult))))
                     .isError(false)
                     .build();
-        } catch (IOException e) {
-            throw new McpMediatorException(e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Failed to execute tool call", e);
+            String errorMessage = e.getMessage();
+            if (configuration.getExceptionHandler() != null) {
+                try {
+                    errorMessage = configuration.getExceptionHandler().handleException(mcpMediatorRequest, e);
+                } catch (Exception ex) {
+                    log.error("Exception handler failed", ex);
+                }
+            }
+            return McpSchema.CallToolResult.builder()
+                    .content(java.util.List.of(new McpSchema.TextContent(errorMessage)))
+                    .isError(true)
+                    .build();
         }
     }
 
