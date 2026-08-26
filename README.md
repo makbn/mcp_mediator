@@ -38,7 +38,7 @@ Wiki page is organized as follows:
 -  Spring Framework and Spring Boot integration
 -  Comprehensive error handling
 - ~~Docker Implementation~~ (Done)
--  Dropbox Implementation
+- ~~Dropbox Implementation~~ (Done)
 
 :baby_bottle: Planned:
 - Generate MCP Server for existing Spring `Controllers` and mediate request between MCP client and controllers
