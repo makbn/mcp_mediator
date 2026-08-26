@@ -42,7 +42,7 @@ Wiki page is organized as follows:
 
 :baby_bottle: Planned:
 - Generate MCP Server for existing Spring `Controllers` and mediate request between MCP client and controllers
-- Generate MCP Server for existing OpenAPI specification and generate MCP `Tool` for the APIs and delegate the requests  
+- ~~Generate MCP Server for existing OpenAPI specification and generate MCP `Tool` for the APIs and delegate the requests~~ (Done)  
 
 ## Modules
 
