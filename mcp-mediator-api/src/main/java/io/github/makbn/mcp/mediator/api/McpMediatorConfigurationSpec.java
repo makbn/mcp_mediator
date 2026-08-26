@@ -1,5 +1,6 @@
 package io.github.makbn.mcp.mediator.api;
 
+import io.opentelemetry.api.OpenTelemetry;
 import jakarta.annotation.Nonnull;
 
 /**
@@ -61,6 +62,13 @@ public interface McpMediatorConfigurationSpec {
      * @return the exception handler
      */
     McpMediatorExceptionHandler getExceptionHandler();
+
+    /**
+     * Returns the OpenTelemetry instance used for observability.
+     *
+     * @return the OpenTelemetry instance
+     */
+    OpenTelemetry getOpenTelemetry();
 
     /**
      * Indicates whether the Prompts capability of your MCP server is available.

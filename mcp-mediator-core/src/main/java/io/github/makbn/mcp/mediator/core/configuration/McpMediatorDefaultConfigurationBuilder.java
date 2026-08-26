@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.makbn.mcp.mediator.api.McpMediatorConfigurationSpec;
 import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
 import io.github.makbn.mcp.mediator.api.DefaultMcpMediatorExceptionHandler;
+import io.opentelemetry.api.OpenTelemetry;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
 import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
 import io.github.makbn.mcp.mediator.api.DefaultMcpMediatorExceptionHandler;
+import io.opentelemetry.api.OpenTelemetry;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -124,6 +126,11 @@ public final class McpMediatorDefaultConfigurationBuilder {
     }
 
     @NonNull
+    public McpMediatorDefaultConfigurationBuilder openTelemetry(@NonNull OpenTelemetry openTelemetry) {
+        this.configuration.setOpenTelemetry(openTelemetry);
+        return this;
+    }
+
     public McpMediatorDefaultConfigurationBuilder exceptionHandler(@NonNull McpMediatorExceptionHandler exceptionHandler) {
         this.configuration.setExceptionHandler(exceptionHandler);
         return this;
