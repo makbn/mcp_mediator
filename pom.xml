@@ -15,14 +15,14 @@
     <properties>
         <revision>1.0.0-SNAPSHOT</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <spring.version>6.2.6</spring.version>
         <spring.boot.version>3.4.4</spring.boot.version>
         <spring-ai.version>1.0.0</spring-ai.version>
         <slf4j.version>2.0.17</slf4j.version>
         <lombok.version>1.18.38</lombok.version>
-        <mcp-bom.version>0.9.0</mcp-bom.version>
+        <mcp-bom.version>2.0.1</mcp-bom.version>
         <jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
         <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
         <httpclient5.version>5.4.3</httpclient5.version>
@@ -34,7 +34,7 @@
         <logback.version>1.5.19</logback.version>
         <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
         <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-        <jackson-bom.version>2.19.0</jackson-bom.version>
+        <jackson-bom.version>2.22.2</jackson-bom.version>
     </properties>
 
     <modules>
@@ -44,7 +44,6 @@
         <module>mcp-mediator-commons</module>
         <module>mcp-mediator-spring-boot-starter</module>
         <module>mcp-mediator-implementation-query</module>
-        <module>mcp-mediator-implementation-docker</module>
         <module>mcp-mediator-implementation-dropbox</module>
         <module>mcp-mediator-example</module>
         <module>mcp-mediator-inspector</module>

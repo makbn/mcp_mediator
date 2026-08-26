@@ -12,6 +12,8 @@ import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.server.McpSyncServer;
 import io.modelcontextprotocol.server.transport.HttpServletSseServerTransportProvider;
 import io.modelcontextprotocol.server.transport.StdioServerTransportProvider;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
+import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerTransportProvider;
 import lombok.AccessLevel;
@@ -213,27 +215,29 @@ public class DefaultMcpMediator implements McpMediator {
     @NonNull
     protected McpServerFeatures.SyncToolSpecification createMcpToolSpecification(
             @NonNull McpToolAdapter<?> adapter,
-            @NonNull Function<Map<String, Object>, McpSchema.CallToolResult> functionToCall) {
+            @NonNull Function<McpSchema.CallToolRequest, McpSchema.CallToolResult> functionToCall) {
 
         return new McpServerFeatures.SyncToolSpecification(defineMcpTool(adapter),
-                (mcpSyncServerExchange, stringObjectMap) -> {
+                (mcpSyncServerExchange, callToolRequest) -> {
                     try {
-                        return functionToCall.apply(stringObjectMap);
+                        return functionToCall.apply(callToolRequest);
                     } catch (Exception e) {
                         log.error("Failed to execute the request, sending error to client", e);
                         mcpSyncServerExchange.loggingNotification(new McpSchema.LoggingMessageNotification(McpSchema.LoggingLevel.DEBUG, e.getMessage(), e.getStackTrace().toString()));
-                        return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent(e.getMessage())), true);
+                        return McpSchema.CallToolResult.builder().content(List.of(new McpSchema.TextContent(e.getMessage()))).isError(true).build();
                     }
                 });
     }
 
     private McpServerTransportProvider getMcpServerTransportProvider() {
         return switch (configuration.getTransportType()) {
-            case STDIO -> new StdioServerTransportProvider(configuration.getSerializer(),
+            case STDIO -> new StdioServerTransportProvider(new JacksonMcpJsonMapper(configuration.getSerializer()),
                     configuration.getStdioInputStream(),
                     configuration.getStdioOutputStream());
-            case SSE -> new HttpServletSseServerTransportProvider(configuration.getSerializer(),
-                    configuration.getServerAddress());
+            case SSE -> HttpServletSseServerTransportProvider.builder()
+                    .jsonMapper(new JacksonMcpJsonMapper(configuration.getSerializer()))
+                    .baseUrl(configuration.getServerAddress())
+                    .build();
         };
     }
 
@@ -252,19 +256,24 @@ public class DefaultMcpMediator implements McpMediator {
 
     @NonNull
     private McpSchema.Tool defineMcpTool(@NonNull McpToolAdapter<?> adapter) {
-        return new McpSchema.Tool(adapter.getMethod(), adapter.getDescription(), adapter.getSchema());
+        McpJsonMapper jsonMapper = new JacksonMcpJsonMapper(configuration.getSerializer());
+        return McpSchema.Tool.builder(adapter.getMethod(), jsonMapper, adapter.getSchema())
+                .description(adapter.getDescription())
+                .build();
     }
 
     private McpSchema.CallToolResult executeClientCall(
-            Map<String, Object> mcpClientRequestParameters,
+            McpSchema.CallToolRequest mcpClientRequest,
             Class<? extends McpMediatorRequest<?>> mcpMediatorRequestType) {
         try {
             McpMediatorRequest<?> mcpMediatorRequest = configuration.getSerializer()
-                    .convertValue(mcpClientRequestParameters, mcpMediatorRequestType);
+                    .convertValue(mcpClientRequest.arguments(), mcpMediatorRequestType);
             Object mcpMediatorResult = execute(mcpMediatorRequest);
 
-            return new McpSchema.CallToolResult(
-                    List.of(new McpSchema.TextContent(serialize(mcpMediatorResult))), false);
+            return McpSchema.CallToolResult.builder()
+                    .content(List.of(new McpSchema.TextContent(serialize(mcpMediatorResult))))
+                    .isError(false)
+                    .build();
         } catch (IOException e) {
             throw new McpMediatorException(e.getMessage(), e);
         }
