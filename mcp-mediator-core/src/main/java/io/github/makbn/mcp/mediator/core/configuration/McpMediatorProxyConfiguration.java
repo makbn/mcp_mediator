@@ -2,6 +2,7 @@ package io.github.makbn.mcp.mediator.core.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
+import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
@@ -80,8 +81,8 @@ public final class McpMediatorProxyConfiguration extends McpMediatorDefaultConfi
 
 
     public McpMediatorProxyConfiguration(String serverName, String serverVersion, ObjectMapper serializer,
-                                         McpTransportType transportType, boolean toolsEnabled, String serverAddress,
+                                         McpTransportType transportType, boolean toolsEnabled, McpMediatorExceptionHandler exceptionHandler, String serverAddress,
                                          InputStream stdioInputStream, OutputStream stdioOutputStream) {
-        super(serverName, serverVersion, serializer, transportType, toolsEnabled, serverAddress, stdioInputStream, stdioOutputStream);
+        super(serverName, serverVersion, serializer, transportType, toolsEnabled, exceptionHandler, serverAddress, stdioInputStream, stdioOutputStream);
     }
 }

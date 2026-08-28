@@ -18,7 +18,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <dropbox-core-sdk.version>7.0.0</dropbox-core-sdk.version>
+        <dropbox-core-sdk.version>8.0.2</dropbox-core-sdk.version>
     </properties>
 
     <dependencies>

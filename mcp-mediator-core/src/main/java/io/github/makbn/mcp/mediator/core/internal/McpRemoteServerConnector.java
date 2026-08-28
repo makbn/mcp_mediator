@@ -12,6 +12,7 @@ import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
 import io.modelcontextprotocol.spec.McpClientTransport;
 import io.modelcontextprotocol.spec.McpSchema;
+import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -110,10 +111,10 @@ public class McpRemoteServerConnector {
     private McpClientTransport createTransportType() {
         if (request.getRemoteServer().getRemoteTransportType() == McpTransportType.SSE) {
             return HttpClientSseClientTransport.builder(request.getRemoteServer().getRemoteServerAddress())
-                    .objectMapper(request.getRemoteServer().getSerializer())
+                    .jsonMapper(new JacksonMcpJsonMapper(request.getRemoteServer().getSerializer()))
                     .build();
         } else if (request.getRemoteServer().getRemoteTransportType() == McpTransportType.STDIO) {
-            return new StdioClientTransport(createServerParameters(), request.getRemoteServer().getSerializer());
+            return new StdioClientTransport(createServerParameters(), new JacksonMcpJsonMapper(request.getRemoteServer().getSerializer()));
         } else {
             throw new UnsupportedOperationException("transport type is not supported");
         }

@@ -50,10 +50,10 @@ public class McpMediatorRemoteMcpServer {
      * @throws McpMediatorException if the remote server does not support the requested tool
      */
     public McpSchema.CallToolResult handleRemoteRequest(@NonNull NativeToolAdapter toolAdapter,
-                                                        @NonNull Map<String, Object> clientPassedArgs) {
+                                                        @NonNull McpSchema.CallToolRequest clientPassedArgs) {
         if (!toolAdapters.contains(toolAdapter)) {
             throw new McpMediatorException("invocated tool is not supported by the remote server");
         }
-        return connectionToRemoteServer.callTool(new McpSchema.CallToolRequest(toolAdapter.getMethod(), clientPassedArgs));
+        return connectionToRemoteServer.callTool(new McpSchema.CallToolRequest(toolAdapter.getMethod(), clientPassedArgs.arguments()));
     }
 }

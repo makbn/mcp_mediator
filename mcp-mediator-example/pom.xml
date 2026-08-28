@@ -42,11 +42,7 @@
             <artifactId>mcp-mediator-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.github.makbn</groupId>
-            <artifactId>mcp-mediator-implementation-docker</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+        
         <dependency>
             <groupId>io.github.makbn</groupId>
             <artifactId>mcp-mediator-implementation-query</artifactId>

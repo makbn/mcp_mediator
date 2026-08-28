@@ -1,10 +1,10 @@
 package io.github.makbn.mcp.mediator.spring.boot;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.makbn.mcp.mediator.api.McpMediator;
 import io.github.makbn.mcp.mediator.core.DefaultMcpMediator;
+import io.github.makbn.mcp.mediator.core.configuration.McpMediatorConfigurationBuilder;
 import jakarta.annotation.Nonnull;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Configuration;
@@ -16,22 +16,36 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import java.util.Map;
 
 @Configuration
-//@ConditionalOnProperty(name = "mcp.mediator.endpoint.mapping.type", value = "request-mapping")
 public class McpMediatorRequestMappingAdapterConfiguration implements ApplicationListener<ContextRefreshedEvent> {
+
+    private McpMediator mcpMediator;
 
     @Override
     public void onApplicationEvent(@Nonnull ContextRefreshedEvent event) {
-        McpMediator mcpMediator = new DefaultMcpMediator();
-
         ApplicationContext applicationContext = event.getApplicationContext();
         RequestMappingHandlerMapping requestMappingHandlerMapping = applicationContext
                 .getBean("requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
         Map<RequestMappingInfo, HandlerMethod> map = requestMappingHandlerMapping
                 .getHandlerMethods();
 
-        map.forEach((mappingInfo, method) -> {
-            System.out.printf("mappingInfo: %s\n", mappingInfo);
-            System.out.printf("method   : %s\n", method);
-        });
+        if (map == null || map.isEmpty()) {
+            return;
+        }
+
+        ObjectMapper objectMapper = applicationContext.getBeanProvider(ObjectMapper.class).getIfAvailable(ObjectMapper::new);
+
+        this.mcpMediator = new DefaultMcpMediator(McpMediatorConfigurationBuilder.builder()
+                .createDefault()
+                .serializer(objectMapper)
+                .serverName("spring_controllers_mcp_server")
+                .serverVersion("1.0.0")
+                .build());
+
+        this.mcpMediator.registerHandler(McpSpringControllerFactory.create(map).build());
+        this.mcpMediator.initialize();
+    }
+
+    public McpMediator getMcpMediator() {
+        return mcpMediator;
     }
 }

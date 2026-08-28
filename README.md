@@ -35,14 +35,14 @@ Wiki page is organized as follows:
 - Automatically generating MCP Server Tools for the existing methods and services
 
 :hourglass_flowing_sand: Work In Progress:
--  Spring Framework and Spring Boot integration
--  Comprehensive error handling
--  Docker Implementation
--  Dropbox Implementation
+- ~~Spring Framework and Spring Boot integration~~ (Done)
+- ~~Comprehensive error handling~~ (Done)
+- ~~Docker Implementation~~ (Done)
+- ~~Dropbox Implementation~~ (Done)
 
 :baby_bottle: Planned:
-- Generate MCP Server for existing Spring `Controllers` and mediate request between MCP client and controllers
-- Generate MCP Server for existing OpenAPI specification and generate MCP `Tool` for the APIs and delegate the requests  
+- ~~Generate MCP Server for existing Spring `Controllers` and mediate request between MCP client and controllers~~ (Done)
+- ~~Generate MCP Server for existing OpenAPI specification and generate MCP `Tool` for the APIs and delegate the requests~~ (Done)  
 
 ## Modules
 
