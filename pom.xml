@@ -50,6 +50,8 @@
         <module>mcp-mediator-openapi</module>
         <module>mcp-mediator-example</module>
         <module>mcp-mediator-inspector</module>
+        <module>mcp-mediator-security</module>
+        <module>mcp-mediator-spring-security</module>
     </modules>
 
     <dependencyManagement>
