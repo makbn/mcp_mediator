@@ -16,8 +16,15 @@ import io.modelcontextprotocol.json.jackson2.JacksonMcpJsonMapper;
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.McpServerTransportProvider;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.StatusCode;
 import lombok.AccessLevel;
 import lombok.NonNull;
+import io.github.makbn.mcp.mediator.api.McpMediatorInterceptor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
@@ -151,17 +158,25 @@ public class DefaultMcpMediator implements McpMediator {
         McpRequestExecutor<R> executor = new McpRequestExecutor<>() {
             @Override
             public R call() {
+                Tracer tracer = configuration.getOpenTelemetry().getTracer("mcp-mediator-core");
+                Span span = tracer.spanBuilder("mcp_handler_execute").startSpan();
                 McpExecutionContext.set(MinimalMcpMediator.of(DefaultMcpMediator.this),
                         configuration.getSerializer(), parentContext);
 
                 validateHandler(handler, request);
-                try {
-                    return handler.handle(request);
+                try (io.opentelemetry.context.Scope scope = span.makeCurrent()) {
+                    span.setAttribute("mcp.request.type", request.getClass().getSimpleName());
+                    R result = handler.handle(request);
+                    span.setStatus(StatusCode.OK);
+                    return result;
                 } catch (Exception e) {
+                    span.recordException(e);
+                    span.setStatus(StatusCode.ERROR, e.getMessage());
                     log.error("Failed to execute request {}", request, e);
                     throw new McpMediatorException(e.getMessage(), e);
                 } finally {
                     McpExecutionContext.remove();
+                    span.end();
                 }
             }
         };
@@ -219,10 +234,21 @@ public class DefaultMcpMediator implements McpMediator {
 
         return new McpServerFeatures.SyncToolSpecification(defineMcpTool(adapter),
                 (mcpSyncServerExchange, callToolRequest) -> {
-                    try {
-                        return functionToCall.apply(callToolRequest);
+                    Tracer tracer = configuration.getOpenTelemetry().getTracer("mcp-mediator-core");
+                    Span span = tracer.spanBuilder("mcp_tool_execution").startSpan();
+                    try (io.opentelemetry.context.Scope scope = span.makeCurrent()) {
+                        span.setAttribute("mcp.tool.name", callToolRequest.name());
+                        McpSchema.CallToolResult result = functionToCall.apply(callToolRequest);
+                        if (result != null && result.isError() != null && result.isError()) {
+                            span.setStatus(StatusCode.ERROR, "Tool execution returned error result");
+                        } else {
+                            span.setStatus(StatusCode.OK);
+                        }
+                        return result;
                     } catch (Exception e) {
                         log.error("Failed to execute the request, sending error to client", e);
+                        span.recordException(e);
+                        span.setStatus(StatusCode.ERROR, e.getMessage());
                         String errorMessage = e.getMessage();
                         if (configuration.getExceptionHandler() != null) {
                             try {
@@ -233,6 +259,8 @@ public class DefaultMcpMediator implements McpMediator {
                         }
                         mcpSyncServerExchange.loggingNotification(new McpSchema.LoggingMessageNotification(McpSchema.LoggingLevel.DEBUG, e.getMessage(), e.getStackTrace().toString()));
                         return McpSchema.CallToolResult.builder().content(List.of(new McpSchema.TextContent(errorMessage))).isError(true).build();
+                    } finally {
+                        span.end();
                     }
                 });
     }
@@ -273,18 +301,28 @@ public class DefaultMcpMediator implements McpMediator {
     private McpSchema.CallToolResult executeClientCall(
             McpSchema.CallToolRequest mcpClientRequest,
             Class<? extends McpMediatorRequest<?>> mcpMediatorRequestType) {
+        Tracer tracer = configuration.getOpenTelemetry().getTracer("mcp-mediator-core");
+        Span span = tracer.spanBuilder("mcp_tool_call").startSpan();
         McpMediatorRequest<?> mcpMediatorRequest = null;
-        try {
+        try (io.opentelemetry.context.Scope scope = span.makeCurrent()) {
+            span.setAttribute("mcp.tool.name", mcpClientRequest.name());
+            if (configuration.getInterceptors() != null) {
+                for (McpMediatorInterceptor interceptor : configuration.getInterceptors()) {
+                    interceptor.intercept(mcpClientRequest);
+                }
+            }
             mcpMediatorRequest = configuration.getSerializer()
                     .convertValue(mcpClientRequest.arguments(), mcpMediatorRequestType);
             Object mcpMediatorResult = execute(mcpMediatorRequest);
-
+            span.setStatus(StatusCode.OK);
             return McpSchema.CallToolResult.builder()
                     .content(java.util.List.of(new McpSchema.TextContent(serialize(mcpMediatorResult))))
                     .isError(false)
                     .build();
         } catch (Exception e) {
             log.error("Failed to execute tool call", e);
+            span.recordException(e);
+            span.setStatus(StatusCode.ERROR, e.getMessage());
             String errorMessage = e.getMessage();
             if (configuration.getExceptionHandler() != null) {
                 try {
@@ -297,6 +335,8 @@ public class DefaultMcpMediator implements McpMediator {
                     .content(java.util.List.of(new McpSchema.TextContent(errorMessage)))
                     .isError(true)
                     .build();
+        } finally {
+            span.end();
         }
     }
 

@@ -48,5 +48,15 @@
             <artifactId>mcp-mediator-implementation-query</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.makbn</groupId>
+            <artifactId>mcp-mediator-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.makbn</groupId>
+            <artifactId>mcp-mediator-spring-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project> 

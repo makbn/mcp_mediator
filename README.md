@@ -184,3 +184,14 @@ Contributions are welcome! Please feel free to submit a Pull Request. [Read this
 ## License
 
 This project is licensed under the GPL3 License - see the [LICENSE](https://choosealicense.com/licenses/gpl-3.0/) file for details.
+
+## Security & Authorization
+
+MCP Mediator supports native integration with authorization frameworks, including **Spring Security**. 
+Since MCP requests (especially over `STDIO`) rely purely on JSON payloads, you can use the `McpMediatorInterceptor` to extract tokens from the arguments payload and bridge them into your security context.
+
+We provide two dedicated modules for this:
+- **`mcp-mediator-security`**: Generic security context and thread propagation for non-Spring projects.
+- **`mcp-mediator-spring-security`**: Bridges the mediator seamlessly into Spring Security's native `SecurityContextHolder`.
+
+For complete implementation details and code examples, please check out the [Security Integration Guide](https://github.com/makbn/mcp_mediator/wiki/3%E2%80%90Configuration#security--authorization-interceptors) in the Wiki, or refer to `GenericSecurityExample` and `SpringSecurityExample` in the `mcp-mediator-example` module.

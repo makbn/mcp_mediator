@@ -3,10 +3,13 @@ package io.github.makbn.mcp.mediator.core.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
 import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
+import io.opentelemetry.api.OpenTelemetry;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.experimental.SuperBuilder;
+import java.util.concurrent.ExecutorService;
+import io.github.makbn.mcp.mediator.api.McpMediatorInterceptor;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -81,8 +84,8 @@ public final class McpMediatorProxyConfiguration extends McpMediatorDefaultConfi
 
 
     public McpMediatorProxyConfiguration(String serverName, String serverVersion, ObjectMapper serializer,
-                                         McpTransportType transportType, boolean toolsEnabled, McpMediatorExceptionHandler exceptionHandler, String serverAddress,
+                                         McpTransportType transportType, boolean toolsEnabled, McpMediatorExceptionHandler exceptionHandler, OpenTelemetry openTelemetry, java.util.List<McpMediatorInterceptor> interceptors, ExecutorService executorService, String serverAddress,
                                          InputStream stdioInputStream, OutputStream stdioOutputStream) {
-        super(serverName, serverVersion, serializer, transportType, toolsEnabled, exceptionHandler, serverAddress, stdioInputStream, stdioOutputStream);
+        super(serverName, serverVersion, serializer, transportType, toolsEnabled, exceptionHandler, openTelemetry, interceptors, executorService, serverAddress, stdioInputStream, stdioOutputStream);
     }
 }

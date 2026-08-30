@@ -1,6 +1,9 @@
 package io.github.makbn.mcp.mediator.api;
 
+import io.opentelemetry.api.OpenTelemetry;
 import jakarta.annotation.Nonnull;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Specifies the configuration contract for the MCP Mediator.
@@ -61,6 +64,23 @@ public interface McpMediatorConfigurationSpec {
      * @return the exception handler
      */
     McpMediatorExceptionHandler getExceptionHandler();
+
+    /**
+     * Returns the OpenTelemetry instance used for observability.
+     *
+     * @return the OpenTelemetry instance
+     */
+    OpenTelemetry getOpenTelemetry();
+
+    /**
+     * @return list of interceptors
+     */
+    List<McpMediatorInterceptor> getInterceptors();
+
+    /**
+     * @return the executor service
+     */
+    ExecutorService getExecutorService();
 
     /**
      * Indicates whether the Prompts capability of your MCP server is available.

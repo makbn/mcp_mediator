@@ -10,28 +10,24 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>mcp-mediator-api</artifactId>
-    <name>MCP Mediator API</name>
-    <description>API specifications and contracts for MCP Mediator</description>
+    <artifactId>mcp-mediator-security</artifactId>
+    <name>MCP Mediator Security</name>
+    <description>Generic security and authorization layer for MCP Mediator</description>
 
     <dependencies>
         <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-            <version>${jakarta.annotation-api.version}</version>
-            <scope>provided</scope>
+            <groupId>io.github.makbn</groupId>
+            <artifactId>mcp-mediator-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-api</artifactId>
-        </dependency>
     </dependencies>
-</project> 
+</project>

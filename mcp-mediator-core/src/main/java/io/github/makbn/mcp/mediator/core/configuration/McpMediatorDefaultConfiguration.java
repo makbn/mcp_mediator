@@ -5,10 +5,15 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.makbn.mcp.mediator.api.McpMediatorConfigurationSpec;
 import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
 import io.github.makbn.mcp.mediator.api.DefaultMcpMediatorExceptionHandler;
+import io.opentelemetry.api.OpenTelemetry;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import io.github.makbn.mcp.mediator.api.McpMediatorInterceptor;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -51,6 +56,14 @@ public sealed class McpMediatorDefaultConfiguration implements McpMediatorConfig
 
     @Builder.Default
     McpMediatorExceptionHandler exceptionHandler = new DefaultMcpMediatorExceptionHandler();
+
+    @Builder.Default
+    OpenTelemetry openTelemetry = OpenTelemetry.noop();
+
+    @Builder.Default
+    List<McpMediatorInterceptor> interceptors = new ArrayList<>();
+
+    ExecutorService executorService;
 
     /**
      * Specific to {@link McpTransportType#SSE} transport mode.

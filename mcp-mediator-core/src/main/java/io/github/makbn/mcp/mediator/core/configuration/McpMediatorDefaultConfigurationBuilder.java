@@ -5,14 +5,19 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.github.makbn.mcp.mediator.api.McpMediatorConfigurationSpec;
 import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
 import io.github.makbn.mcp.mediator.api.DefaultMcpMediatorExceptionHandler;
+import io.opentelemetry.api.OpenTelemetry;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
 import io.github.makbn.mcp.mediator.api.McpMediatorExceptionHandler;
 import io.github.makbn.mcp.mediator.api.DefaultMcpMediatorExceptionHandler;
+import io.opentelemetry.api.OpenTelemetry;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import io.github.makbn.mcp.mediator.api.McpMediatorInterceptor;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -124,6 +129,11 @@ public final class McpMediatorDefaultConfigurationBuilder {
     }
 
     @NonNull
+    public McpMediatorDefaultConfigurationBuilder openTelemetry(@NonNull OpenTelemetry openTelemetry) {
+        this.configuration.setOpenTelemetry(openTelemetry);
+        return this;
+    }
+
     public McpMediatorDefaultConfigurationBuilder exceptionHandler(@NonNull McpMediatorExceptionHandler exceptionHandler) {
         this.configuration.setExceptionHandler(exceptionHandler);
         return this;
@@ -141,6 +151,23 @@ public final class McpMediatorDefaultConfigurationBuilder {
     }
 
     @NonNull
+    public McpMediatorDefaultConfigurationBuilder addInterceptor(@NonNull McpMediatorInterceptor interceptor) {
+        this.configuration.getInterceptors().add(interceptor);
+        return this;
+    }
+
+    @NonNull
+    public McpMediatorDefaultConfigurationBuilder interceptors(@NonNull List<McpMediatorInterceptor> interceptors) {
+        this.configuration.setInterceptors(interceptors);
+        return this;
+    }
+
+    @NonNull
+    public McpMediatorDefaultConfigurationBuilder executorService(ExecutorService executorService) {
+        this.configuration.setExecutorService(executorService);
+        return this;
+    }
+
     public McpMediatorDefaultConfiguration build() {
         McpMediatorConfigurationHelper.verifyConfigurationProperties(configuration);
         return configuration;

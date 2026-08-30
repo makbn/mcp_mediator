@@ -33,6 +33,7 @@
         <bytebuddy.version>1.17.5</bytebuddy.version>
         <logback.version>1.5.19</logback.version>
         <maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
+        <opentelemetry.version>1.40.0</opentelemetry.version>
         <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
         <jackson-bom.version>2.22.2</jackson-bom.version>
     </properties>
@@ -49,6 +50,8 @@
         <module>mcp-mediator-openapi</module>
         <module>mcp-mediator-example</module>
         <module>mcp-mediator-inspector</module>
+        <module>mcp-mediator-security</module>
+        <module>mcp-mediator-spring-security</module>
     </modules>
 
     <dependencyManagement>
@@ -101,6 +104,12 @@
                 <version>${junit-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api</artifactId>
+                <version>${opentelemetry.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
