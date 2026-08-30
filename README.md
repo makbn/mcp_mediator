@@ -195,3 +195,9 @@ We provide two dedicated modules for this:
 - **`mcp-mediator-spring-security`**: Bridges the mediator seamlessly into Spring Security's native `SecurityContextHolder`.
 
 For complete implementation details and code examples, please check out the [Security Integration Guide](https://github.com/makbn/mcp_mediator/wiki/3%E2%80%90Configuration#security--authorization-interceptors) in the Wiki, or refer to `GenericSecurityExample` and `SpringSecurityExample` in the `mcp-mediator-example` module.
+
+## Observability & Error Handling Examples
+
+The `mcp-mediator-example` module includes dedicated examples demonstrating how to fully instrument the Mediator:
+- **`ObservabilityExample`**: Shows how to programmatically inject an `OpenTelemetry` instance to export traces (via OTLP for Datadog or `LoggingSpanExporter` for standard SLF4J logs).
+- **`CustomErrorHandlerExample`**: Demonstrates customizing the `McpMediatorExceptionHandler` to intercept execution errors, route them through an SLF4J logger, and return safe, obfuscated fallback strings to the client without exposing internal Java stack traces.
