@@ -49,9 +49,13 @@ Wiki page is organized as follows:
 - `mcp-mediator-api`: Core API interfaces and contracts
 - `mcp-mediator-core`: Core implementation and common functionality
 - `mcp-mediator-commons`: Reusable components to make implementation easier
-- `mcp-mediator-example`: Example shows how to use and extend the mediator framework
+- `mcp-mediator-security`: Generic security context and thread propagation for non-Spring projects
 - `mcp-mediator-spring`: Spring Framework and Spring AI integration
+- `mcp-mediator-spring-security`: Bridges the mediator seamlessly into Spring Security's native `SecurityContextHolder`
 - `mcp-mediator-spring-boot-starter`: Spring Boot `autoconfiguration` to generate MCP server automatically for the available endpoints
+- `mcp-mediator-openapi`: Translates OpenAPI specifications directly into MCP tool endpoints
+- `mcp-mediator-inspector`: Utilities for inspecting and debugging Mediator state
+- `mcp-mediator-example`: Example shows how to use and extend the mediator framework
 - Implementation modules for various services:
   - `mcp-mediator-implementation-docker`: Docker service integration [Read More](mcp-mediator-implementation-docker/README.md)
   - `mcp-mediator-implementation-dropbox`: Dropbox service integration (WIP)
