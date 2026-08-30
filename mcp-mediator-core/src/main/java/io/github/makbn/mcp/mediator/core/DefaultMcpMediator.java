@@ -24,6 +24,7 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.api.trace.StatusCode;
 import lombok.AccessLevel;
 import lombok.NonNull;
+import io.github.makbn.mcp.mediator.api.McpMediatorInterceptor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
@@ -305,6 +306,11 @@ public class DefaultMcpMediator implements McpMediator {
         McpMediatorRequest<?> mcpMediatorRequest = null;
         try (io.opentelemetry.context.Scope scope = span.makeCurrent()) {
             span.setAttribute("mcp.tool.name", mcpClientRequest.name());
+            if (configuration.getInterceptors() != null) {
+                for (McpMediatorInterceptor interceptor : configuration.getInterceptors()) {
+                    interceptor.intercept(mcpClientRequest);
+                }
+            }
             mcpMediatorRequest = configuration.getSerializer()
                     .convertValue(mcpClientRequest.arguments(), mcpMediatorRequestType);
             Object mcpMediatorResult = execute(mcpMediatorRequest);

@@ -10,6 +10,10 @@ import io.github.makbn.mcp.mediator.api.McpTransportType;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import io.github.makbn.mcp.mediator.api.McpMediatorInterceptor;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -55,6 +59,11 @@ public sealed class McpMediatorDefaultConfiguration implements McpMediatorConfig
 
     @Builder.Default
     OpenTelemetry openTelemetry = OpenTelemetry.noop();
+
+    @Builder.Default
+    List<McpMediatorInterceptor> interceptors = new ArrayList<>();
+
+    ExecutorService executorService;
 
     /**
      * Specific to {@link McpTransportType#SSE} transport mode.
