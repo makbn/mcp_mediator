@@ -26,23 +26,18 @@ Wiki page is organized as follows:
 
 ## Features
 
-:white_check_mark: Ready:
 - Support for stdio/sse transport
 - Extensible request handling system
 - Configurable server capabilities
 - Support for multiple tool implementations
 - Support for proxying multiple MCP servers
 - Automatically generating MCP Server Tools for the existing methods and services
-
-:hourglass_flowing_sand: Work In Progress:
-- ~~Spring Framework and Spring Boot integration~~ (Done)
-- ~~Comprehensive error handling~~ (Done)
-- ~~Docker Implementation~~ (Done)
-- ~~Dropbox Implementation~~ (Done)
-
-:baby_bottle: Planned:
-- ~~Generate MCP Server for existing Spring `Controllers` and mediate request between MCP client and controllers~~ (Done)
-- ~~Generate MCP Server for existing OpenAPI specification and generate MCP `Tool` for the APIs and delegate the requests~~ (Done)  
+- Spring Framework and Spring Boot integration
+- Comprehensive error handlin
+- Docker Implementation
+- Dropbox Implementation
+- Generate MCP Server for existing Spring `Controllers` and mediate request between MCP client and controllers
+- Generate MCP Server for existing OpenAPI specification and generate MCP `Tool` for the APIs and delegate the requests
 
 ## Modules
 
