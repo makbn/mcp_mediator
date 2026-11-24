@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.function.Function;
 
 /**
@@ -61,14 +62,27 @@ public class McpMethodArgumentResolver {
      * @return an array of arguments, ready to be passed to {@link Method#invoke(Object, Object...)}
      */
     public static Object[] resolveArguments(@NonNull Method method, @NonNull Map<String, Object> jsonMap) {
+        return resolveArguments(method, jsonMap, null);
+    }
+
+    /**
+     * Same as {@link #resolveArguments(Method, Map)} but converts complex types (records, POJOs, collections, enums)
+     * through the supplied {@link ObjectMapper}.
+     */
+    public static Object[] resolveArguments(@NonNull Method method, @NonNull Map<String, Object> jsonMap,
+                                            @Nullable ObjectMapper mapper) {
         Parameter[] parameters = method.getParameters();
         Object[] args = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
+            if (io.github.makbn.mcp.mediator.core.McpCallContext.isInjectable(parameter)) {
+                args[i] = io.github.makbn.mcp.mediator.core.McpCallContext.injectedValue(parameter);
+                continue;
+            }
             String paramName = McpUtils.getParameterName(parameter);
             Object rawValue = jsonMap.get(paramName);
-            args[i] = convertValue(parameter.getType(), rawValue);
+            args[i] = convertValue(parameter.getParameterizedType(), parameter.getType(), rawValue, mapper);
         }
         return args;
     }
@@ -83,12 +97,18 @@ public class McpMethodArgumentResolver {
      * @return the converted value, or default value if the input value is {@code null}
      */
     @Nullable
-    private static Object convertValue(Class<?> targetType, @Nullable Object value) {
+    private static Object convertValue(java.lang.reflect.Type genericType, Class<?> targetType,
+                                       @Nullable Object value, @Nullable ObjectMapper mapper) {
         Function<Object, Object> converter = TYPE_CONVERTERS.get(targetType);
         if (converter != null) {
             return converter.apply(value);
         }
-
+        if (value == null || targetType.isInstance(value) && mapper == null) {
+            return value;
+        }
+        if (mapper != null) {
+            return mapper.convertValue(value, mapper.constructType(genericType));
+        }
         return targetType.cast(value);
     }
 
@@ -100,7 +120,7 @@ public class McpMethodArgumentResolver {
      * @param type      the target type
      * @param converter the converter function to transform input into the target type
      */
-    public void registerTypeConverter(@NonNull Class<?> type, @NonNull Function<Object, Object> converter) {
+    public static void registerTypeConverter(@NonNull Class<?> type, @NonNull Function<Object, Object> converter) {
         TYPE_CONVERTERS.put(type, converter);
     }
 

@@ -7,6 +7,7 @@ import io.github.makbn.mcp.mediator.api.McpTool;
 import io.github.makbn.mcp.mediator.api.McpToolAdapter;
 import io.github.makbn.mcp.mediator.core.internal.McpMethodArgumentDescriber;
 import io.github.makbn.mcp.mediator.core.internal.McpMethodSchemaGenerator;
+import io.github.makbn.mcp.mediator.core.util.McpAnnotations;
 import io.github.makbn.mcp.mediator.core.util.McpUtils;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -113,20 +114,17 @@ public class McpMethodAdapter implements McpToolAdapter<Method> {
 
     @NonNull
     private String extractMethodName() {
-        if (getSourceTool().isAnnotationPresent(McpTool.class)) {
-            return Objects.requireNonNull(getSourceTool().getAnnotation(McpTool.class)).name();
-        } else {
-            return McpUtils.convertCamelCaseToSnake(getSourceTool().getName());
-        }
+        return McpAnnotations.find(getSourceTool(), "McpTool")
+                .map(a -> McpAnnotations.str(a, "name", McpAnnotations.isSpringAi(a)
+                        ? getSourceTool().getName() : McpUtils.convertCamelCaseToSnake(getSourceTool().getName())))
+                .orElseGet(() -> McpUtils.convertCamelCaseToSnake(getSourceTool().getName()));
     }
 
     @NonNull
     private String extractMethodDescription() {
-        if (getSourceTool().isAnnotationPresent(McpTool.class)) {
-            return Objects.requireNonNull(getSourceTool().getAnnotation(McpTool.class)).description();
-        } else {
-            return McpMethodArgumentDescriber.describeMethod(getSourceTool());
-        }
+        return McpAnnotations.find(getSourceTool(), "McpTool")
+                .map(a -> McpAnnotations.str(a, "description", null))
+                .orElseGet(() -> McpMethodArgumentDescriber.describeMethod(getSourceTool()));
     }
 
     @Override

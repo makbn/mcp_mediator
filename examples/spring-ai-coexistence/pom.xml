@@ -1,0 +1,16 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>demo</groupId><artifactId>coexist</artifactId><version>1</version>
+  <properties><maven.compiler.release>21</maven.compiler.release></properties>
+  <dependencyManagement><dependencies>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-dependencies</artifactId><version>4.2.0-RC2</version><type>pom</type><scope>import</scope></dependency>
+    <dependency><groupId>org.springframework.ai</groupId><artifactId>spring-ai-bom</artifactId><version>2.1.0-RC2</version><type>pom</type><scope>import</scope></dependency>
+  </dependencies></dependencyManagement>
+  <dependencies>
+    <dependency><groupId>org.springframework.ai</groupId><artifactId>spring-ai-starter-mcp-server-webmvc</artifactId></dependency>
+    <dependency><groupId>io.github.makbn</groupId><artifactId>mcp-mediator-spring-boot-starter</artifactId><version>1.0.0-SNAPSHOT</version></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+  </dependencies>
+  <build><plugins><plugin><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version><configuration><parameters>true</parameters></configuration></plugin>
+  <plugin><artifactId>maven-surefire-plugin</artifactId><version>3.5.3</version></plugin></plugins></build>
+</project>

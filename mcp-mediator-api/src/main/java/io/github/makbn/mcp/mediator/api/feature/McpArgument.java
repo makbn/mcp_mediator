@@ -27,7 +27,7 @@ import java.lang.annotation.*;
  * @author Matt Akbarian
  */
 @Documented
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface McpArgument {
     String name();

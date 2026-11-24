@@ -60,9 +60,9 @@ Wiki page is organized as follows:
 
 ### Prerequisites
 
-- Java 17 or later
+- Java 21 or later
 - Maven 3.6 or later
-- Spring Boot 3.2.2 or later (for Spring Boot integration)
+- Java 21 and Spring Boot 4.0 / 4.1 / 4.2 (Spring Framework 7) for the Spring integration (CI matrix: 4.0.9, 4.1.2, 4.2.0-RC2)
 
 All the examples are available under `mcp-mediator-exmple` module. It's still a work in progress and the examples will be added.
 
@@ -99,6 +99,75 @@ Make sure to make `run.sh` executable and add `mvn` command to your path.
 
 This mediator runs a STDIO MCP server with handlers and delegates requests from MCP client  (e.g. Claude Desktop) to
 the registered handlers. 
+
+## Annotations: own vs. Spring AI
+
+Think `@Resource` (standard) vs. `@Autowired` (richer): **both families work on the same classes and produce the
+same MCP surface** (verified by the parity tests in `mcp-mediator-core`).
+
+| Feature | Mediator's own (`io.github.makbn.mcp.mediator.api`) | Spring AI 2.x (`org.springframework.ai.mcp.annotation`) and 1.x (`org.springaicommunity.mcp.annotation`) |
+|---|---|---|
+| Tool / parameter | `@McpTool`, `@McpToolParam` | `@McpTool`, `@McpToolParam` |
+| Resource / template | `@McpResource` (`{var}` in uri = template) | `@McpResource` |
+| Prompt / argument | `@McpPrompt`, `@McpArg` | `@McpPrompt`, `@McpArg` |
+| Completion | `@McpComplete` | `@McpComplete` |
+
+* Both Spring AI generations are recognised: 2.x (`org.springframework.ai.mcp.annotation`, used with Spring Boot 4)
+  and the community package of Spring AI 1.x (`org.springaicommunity.mcp.annotation`).
+* Verified against Spring AI itself: `SpringAi2ReferenceParityTest` feeds one bean to Spring AI 2.1's own
+  `Sync*Provider` classes and to the mediator and compares tool/resource/prompt/completion definitions (names,
+  descriptions, schema properties, required, types, enums, item types) and call results.
+* Coexistence: `examples/spring-ai-coexistence` runs Spring AI's MCP server starter and this starter together
+  (the mediator is opt-in, so Spring AI keeps serving its `@McpTool` beans). Don't enable both on the same endpoint.
+* Plain Java: use the own annotations (no Spring on the classpath), `mediator.registerBean(obj)` before `initialize()`.
+  `@McpService` on the class is optional. See `AnnotatedBeanStdioExample`.
+* Spring Boot: add the starter, set `mcp.mediator.enabled=true`; every singleton bean with annotated methods (either
+  family, proxied or not, package-private is fine) is registered. Define your own `McpMediator` bean to take over
+  (the auto-configuration backs off and registers the beans on yours).
+
+Tool methods can declare a `McpSyncServerExchange`, `CallToolRequest` or Spring AI `McpSyncRequestContext` parameter and a
+`@McpProgressToken String`; they are injected and hidden from the schema. Tool `title` and `annotations` hints are
+advertised, `generateOutputSchema = true` publishes an output schema plus `structuredContent`, and `Mono`/`Flux` methods
+are resolved. Resources, prompts and completions also accept the exchange/request types.
+
+**Client side (proxy):** objects with Spring AI's `@McpSampling`, `@McpElicitation`, `@McpLogging`, `@McpProgress`,
+`@McpToolListChanged`, `@McpResourceListChanged`, `@McpPromptListChanged` - or the mediator's
+`@McpClientHandler(Kind.X)` - passed via `McpMediatorRemoteMcpServerConfiguration.builder().clientHandler(obj)` are
+wired into the MCP client (single-parameter handler methods).
+
+**Transports:** `mcp.mediator.transport=STDIO|SSE|STREAMABLE_HTTP|STATELESS_HTTP|MODERN_HTTP`; streamable HTTP is mounted at `/mcp` in servlet apps
+(`StreamableHttpSampleAppTest` is the sample app).
+
+`McpMeta` (own or Spring AI's) is injected into tool methods; multi-argument logging/progress handler signatures
+(`level, logger, data` / `@McpProgressToken token, progress, total, message`) are bound. SSE (`/sse`,
+`/mcp/message`) and streamable HTTP (`/mcp`) are auto-mounted. `LiveClientRoundTripTest` runs a real SDK client against
+the Spring Boot server, including server-initiated sampling answered by annotated client handlers.
+
+`McpAsyncRequestContext` and `McpAsyncServerExchange` are injectable too. Client handlers honour `clients = "name"`
+routing: set `McpMediatorRemoteMcpServerConfiguration.builder().name("name")` on the connection (no name = all handlers).
+`mcp.mediator.transport=STATELESS_HTTP` serves `/mcp` without sessions (tools then receive a `null` exchange).
+
+`icons` (`@McpIcon`), `requiredCapabilities`, `size` and `metaProvider` are honoured (own or Spring AI annotations).
+`MODERN_HTTP` serves the same beans through the MCP SDK's "modern" server API (the one Spring AI 2.1's `Modern`
+providers use) at `/mcp`; `McpRequestContext` and Spring AI's `McpModernSyncRequestContext` are injectable there
+(`ModernHttpTest` runs the SDK's modern client against it and diffs definitions with Spring AI's own Modern providers).
+For Spring AI-annotated tools, parameters without `@McpToolParam` are required (Spring AI semantics); for the
+mediator's own annotations they stay optional unless `@NotNull`/`required=true`, as before.
+
+Coverage guard: `SpringAiAnnotationCoverageTest` reflects over every Spring AI 2.x MCP annotation and fails when an
+attribute is neither handled nor explicitly listed, so a new upstream attribute cannot be silently ignored.
+`@McpToolParam(header = true)` (schema keyword `x-mcp-header`) and `@McpArg(title)` are supported.
+
+Version note: Spring AI 2.1.0-RC2 was compiled against MCP SDK 2.2.0-M2; against the 2.2.0 GA SDK (used here) its
+`McpModernSyncRequestContext.inputResponse(key, Class)` throws `NoSuchMethodError` (upstream skew) - use
+`inputResponses()`, or wait for a Spring AI release built on the GA SDK.
+
+Known limits: with the stateless transport there is no server exchange, so exchange/context parameters are `null`;
+the modern server's sampling/roots rounds use the SDK's input-required mechanism (see below).
+Spring AI's own server starters should not be enabled on the same endpoint.
+Resource `annotations` (audience/priority/lastModified), `ttlMs` and `cacheScope` (modern server) are applied; the modern
+server supports input-required rounds (elicitation) by returning `InputRequiredResult` from a method. Spring AI's classic
+provider ignores resource `annotations`, the mediator maps them per the MCP spec.
 
 ## Convert Existing Code to MCP Server
 Convert the existing code, service, helper class, or method automatically to an MCP server using `@McpService`: 

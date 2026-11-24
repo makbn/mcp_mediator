@@ -109,6 +109,27 @@ public final class McpUtils {
         if (parameter.isAnnotationPresent(McpArgument.class)) {
             return Objects.requireNonNull(parameter.getAnnotation(McpArgument.class)).name();
         }
-        return parameter.getName();
+        return McpAnnotations.find(parameter, "McpToolParam")
+                .or(() -> McpAnnotations.find(parameter, "McpArg"))
+                .map(a -> McpAnnotations.str(a, "name", parameter.getName()))
+                .orElse(parameter.getName());
+    }
+
+    private static final java.util.concurrent.atomic.AtomicLong REQUEST_CLASS_IDS = new java.util.concurrent.atomic.AtomicLong();
+
+    /** Suffix that keeps generated request class names unique within the JVM (class injection is by name). */
+    public static String nextRequestClassId() {
+        return "_" + REQUEST_CLASS_IDS.incrementAndGet();
+    }
+
+    /** Blocks on reactive results so {@code Mono}/{@code Flux} methods work like synchronous ones (Flux -> List). */
+    public static Object awaitIfReactive(Object result) {
+        if (result instanceof reactor.core.publisher.Mono<?> mono) {
+            return mono.block();
+        }
+        if (result instanceof reactor.core.publisher.Flux<?> flux) {
+            return flux.collectList().block();
+        }
+        return result;
     }
 }

@@ -93,6 +93,9 @@ public final class McpMethodArgumentDescriber {
 
         // Describe parameters
         for (Parameter parameter : method.getParameters()) {
+            if (io.github.makbn.mcp.mediator.core.McpCallContext.isInjectable(parameter)) {
+                continue;
+            }
             sb.append("- ").append(McpUtils.getParameterName(parameter))
                     .append(" is a ").append(parameter.getType().getSimpleName());
 

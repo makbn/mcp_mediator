@@ -3,6 +3,8 @@ package io.github.makbn.mcp.mediator.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.makbn.mcp.mediator.api.*;
 import io.github.makbn.mcp.mediator.core.adaper.McpMethodAdapter;
+import io.github.makbn.mcp.mediator.core.util.McpUtils;
+import io.github.makbn.mcp.mediator.core.util.McpAnnotations;
 import io.github.makbn.mcp.mediator.core.internal.McpMethodArgumentResolver;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -15,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -70,39 +73,54 @@ public class McpServiceFactory {
         return this;
     }
 
-    public McpMediatorRequestHandler<?, ?> build() {
-        if (!service.getClass().isAnnotationPresent(McpService.class)) {
-            throw new McpMediatorException("Service class should be annotated with @McpService");
-        }
-        McpService serviceAnnotation = Objects.requireNonNull(service.getClass().getAnnotation(McpService.class));
+    /** @return true if the object declares at least one {@code @McpTool} method (either annotation family). */
+    public static boolean hasTools(Object service) {
+        return toolMethods(userClass(service)).stream().anyMatch(m -> McpAnnotations.find(m, "McpTool").isPresent());
+    }
 
-        return createServiceHandler(excludedMethods, createForNonAnnotatedMethods, service, serviceAnnotation);
+    public McpMediatorRequestHandler<?, ?> build() {
+        Class<?> userClass = userClass(service);
+        McpService serviceAnnotation = userClass.getAnnotation(McpService.class);
+        if (serviceAnnotation == null && !createForNonAnnotatedMethods
+                && toolMethods(userClass).stream().noneMatch(m -> McpAnnotations.find(m, "McpTool").isPresent())) {
+            throw new McpMediatorException(
+                    "Service class should be annotated with @McpService or declare @McpTool methods: " + userClass.getName());
+        }
+        String name = serviceAnnotation != null && !serviceAnnotation.name().isBlank()
+                ? serviceAnnotation.name() : userClass.getSimpleName();
+
+        return createServiceHandler(excludedMethods, createForNonAnnotatedMethods, service, name);
     }
 
 
     private static McpServiceRequestHandler createServiceHandler(Set<String> excludedMethods,
-            boolean createForNonAnnotated, Object service, McpService serviceAnnotation) {
+            boolean createForNonAnnotated, Object service, String serviceName) {
         return new McpServiceRequestHandler() {
             private static final Logger log = LoggerFactory.getLogger("McpServiceRequestHandler");
             private Map<? extends McpServiceRequest, McpMethodAdapter> adapterMap;
             private Object internalService;
+            private ObjectMapper objectMapper;
 
             @Override
             @SuppressWarnings("java:S3864")
             public void initialize(Object[] args) {
                 ObjectMapper mapper = getObjectMapper(args);
+                this.objectMapper = mapper;
                 this.internalService = service;
-                this.adapterMap = Arrays.stream(service.getClass().getDeclaredMethods())
-                        .filter(method -> createForNonAnnotated || method.isAnnotationPresent(McpTool.class))
+                this.adapterMap = toolMethods(userClass(service)).stream()
+                        .filter(method -> createForNonAnnotated || McpAnnotations.find(method, "McpTool").isPresent())
                         .filter(method -> !excludedMethods.contains(method.getName()))
-                        .map(method -> new McpMethodAdapter(method, mapper))
+                        .map(method -> {
+                            method.setAccessible(true); // non-public classes (common for beans) would fail otherwise
+                            return new McpMethodAdapter(method, mapper);
+                        })
                         .peek(adapter -> log.debug("Mapped method: {} to: {}", adapter.getMethod(), adapter.getSourceTool()))
                         .collect(Collectors.toMap(this::convertToRequest, Function.identity()));
             }
 
             @Override
             public String getName() {
-                return serviceAnnotation.name();
+                return serviceName;
             }
 
             @Override
@@ -111,9 +129,9 @@ public class McpServiceFactory {
                 McpMethodAdapter adapter = findAdapter(request);
 
                 Object[] parameters = McpMethodArgumentResolver.resolveArguments(
-                        adapter.getSourceTool(), mcpServiceRequest);
+                        adapter.getSourceTool(), mcpServiceRequest, objectMapper);
                 try {
-                    return adapter.getSourceTool().invoke(internalService, parameters);
+                    return McpUtils.awaitIfReactive(adapter.getSourceTool().invoke(internalService, parameters));
                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                     throw new McpMediatorException(generateMessage(e, adapter), e);
                 }
@@ -151,7 +169,7 @@ public class McpServiceFactory {
                 McpServiceRequest request;
                 try (DynamicType.Unloaded<McpServiceRequest> unloaded = new ByteBuddy(ClassFileVersion.JAVA_V17)
                         .subclass(McpServiceRequest.class)
-                        .name("generated." + adapter.getMethod() + "_Request")
+                        .name("generated." + adapter.getMethod() + "_Request" + McpUtils.nextRequestClassId())
                         .make()) {
                     Class<? extends McpServiceRequest> requestClass = unloaded.load(getClass().getClassLoader(),
                                     ClassLoadingStrategy.Default.INJECTION)
@@ -179,6 +197,29 @@ public class McpServiceFactory {
                 return mapper;
             }
         };
+    }
+
+    /** Unwraps CGLIB/ByteBuddy proxies so annotations on the real class are visible. */
+    static Class<?> userClass(Object service) {
+        Class<?> c = service.getClass();
+        while (c.getSuperclass() != null && c.getName().contains("$$")) {
+            c = c.getSuperclass();
+        }
+        return c;
+    }
+
+    /** Public and declared methods of the class hierarchy (excluding Object), most specific first. */
+    static List<Method> toolMethods(Class<?> type) {
+        List<Method> methods = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+            for (Method m : c.getDeclaredMethods()) {
+                if (!m.isSynthetic() && !m.isBridge() && seen.add(m.getName() + Arrays.toString(m.getParameterTypes()))) {
+                    methods.add(m);
+                }
+            }
+        }
+        return methods;
     }
 
     private static String generateMessage(Exception e, McpMethodAdapter adapter) {
