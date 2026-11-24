@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import io.github.makbn.mcp.mediator.core.util.McpAnnotations;
 import io.github.makbn.mcp.mediator.core.util.McpUtils;
 import lombok.AccessLevel;
 import lombok.NonNull;
@@ -14,11 +15,12 @@ import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 
-import javax.validation.constraints.NotNull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import io.github.makbn.mcp.mediator.api.McpMediatorException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,19 +72,35 @@ public class McpMethodSchemaGenerator {
     public String generateSchemaForMethod(Method method) throws JsonProcessingException {
         ObjectNode schema = mapper.createObjectNode();
         schema.put(TYPE_KEY, OBJECT);
-        schema.put(ID_KEY, ("urn:jsonschema:" + method.getDeclaringClass()
-                .getName().replace('.', ':') + ":" + method.getName()).toLowerCase());
+        // no draft-04 "id": the MCP SDK validator (JSON Schema 2020-12) rejects it
 
         ObjectNode propertiesNode = mapper.createObjectNode();
         ArrayNode requiredArray = mapper.createArrayNode();
 
+        // Spring AI treats undeclared parameters as required; the mediator's own family keeps "optional unless @NotNull"
+        boolean springAiTool = McpAnnotations.find(method, "McpTool").map(McpAnnotations::isSpringAi).orElse(false);
         for (Parameter parameter : method.getParameters()) {
+            if (io.github.makbn.mcp.mediator.core.McpCallContext.isInjectable(parameter)) {
+                continue;
+            }
             ObjectNode paramSchema = describeParameter(parameter);
 
             propertiesNode.set(McpUtils.getParameterName(parameter), paramSchema);
 
-            if (isRequired(parameter)) {
-                requiredArray.add(parameter.getName());
+            McpAnnotations.find(parameter, "McpToolParam").filter(a -> McpAnnotations.bool(a, "header", false)).ifPresent(a -> {
+                String type = paramSchema.path(TYPE_KEY).asText();
+                if (!List.of(STRING, INTEGER, BOOLEAN).contains(type)) {
+                    throw new McpMediatorException("@McpToolParam(header = true) needs a string, integer or boolean parameter: "
+                            + parameter + " in " + method);
+                }
+                paramSchema.put("x-mcp-header", McpUtils.getParameterName(parameter));
+            });
+            McpAnnotations.find(parameter, "McpToolParam").or(() -> McpAnnotations.find(parameter, "McpArg"))
+                    .map(a -> McpAnnotations.str(a, "description", null))
+                    .ifPresent(d -> paramSchema.put("description", d));
+
+            if (isRequired(parameter, springAiTool)) {
+                requiredArray.add(McpUtils.getParameterName(parameter));
             }
         }
 
@@ -92,6 +110,28 @@ public class McpMethodSchemaGenerator {
         }
 
         return mapper.writeValueAsString(schema);
+    }
+
+    /**
+     * Output schema for a method's return type, or null when the type can't be an MCP object schema
+     * (void, primitives, String, collections, Mono/Flux of those).
+     */
+    @SneakyThrows
+    public String generateOutputSchemaForMethod(Method method) {
+        Class<?> type = method.getReturnType();
+        if (reactor.core.publisher.Mono.class.isAssignableFrom(type) && method.getGenericReturnType()
+                instanceof java.lang.reflect.ParameterizedType pt && pt.getActualTypeArguments()[0] instanceof Class<?> c) {
+            type = c;
+        }
+        if (type == void.class || type == Void.class || type.isPrimitive() || type.isEnum() || type.isArray()
+                || isPrimitiveOrWrapper(type) || Collection.class.isAssignableFrom(type)
+                || reactor.core.publisher.Flux.class.isAssignableFrom(type) || type == Object.class
+                || reactor.core.publisher.Mono.class.isAssignableFrom(type)) {
+            return null;
+        }
+        ObjectNode node = mapper.valueToTree(getSchemaGenerator().generateSchema(type));
+        node.remove(ID_KEY);
+        return mapper.writeValueAsString(node);
     }
 
     /**
@@ -110,14 +150,14 @@ public class McpMethodSchemaGenerator {
             paramSchema.put(TYPE_KEY, mapJavaTypeToJsonType(type));
         } else if (Collection.class.isAssignableFrom(type)) {
             paramSchema.put(TYPE_KEY, ARRAY);
-            paramSchema.set(ITEMS_KEY, mapper.createObjectNode().put(TYPE_KEY, OBJECT)); // You can dig deeper if needed
+            paramSchema.set(ITEMS_KEY, itemSchema(parameter.getParameterizedType()));
         } else if (Map.class.isAssignableFrom(type)) {
             paramSchema.put(TYPE_KEY, OBJECT);
         } else {
             // Complex nested type
             JsonSchema schema = getSchemaGenerator().generateSchema(type);
             paramSchema = mapper.valueToTree(schema);
-            paramSchema.put(ID_KEY, schema.getId());
+            paramSchema.remove(ID_KEY);
         }
 
         // Handle validation annotations
@@ -126,6 +166,25 @@ public class McpMethodSchemaGenerator {
         return paramSchema;
     }
 
+
+    /** Schema of a collection's element type; unknown/wildcard element types accept anything. */
+    @SneakyThrows
+    private ObjectNode itemSchema(java.lang.reflect.Type collectionType) {
+        if (collectionType instanceof java.lang.reflect.ParameterizedType pt
+                && pt.getActualTypeArguments().length == 1
+                && pt.getActualTypeArguments()[0] instanceof Class<?> element) {
+            if (isPrimitiveOrWrapper(element)) {
+                return mapper.createObjectNode().put(TYPE_KEY, mapJavaTypeToJsonType(element));
+            }
+            if (!Collection.class.isAssignableFrom(element) && !Map.class.isAssignableFrom(element)
+                    && element != Object.class) {
+                ObjectNode node = mapper.valueToTree(getSchemaGenerator().generateSchema(element));
+                node.remove(ID_KEY);
+                return node;
+            }
+        }
+        return mapper.createObjectNode(); // any
+    }
 
     private JsonSchemaGenerator getSchemaGenerator() {
         if (schemaGenerator == null) {
@@ -169,13 +228,22 @@ public class McpMethodSchemaGenerator {
         }
     }
 
-    private static boolean isRequired(Parameter parameter) {
+    private static boolean isRequired(Parameter parameter, boolean springAiTool) {
+        var declared = McpAnnotations.find(parameter, "McpToolParam").or(() -> McpAnnotations.find(parameter, "McpArg"));
+        if (declared.isPresent()) {
+            return McpAnnotations.bool(declared.get(), "required", true);
+        }
         for (Annotation annotation : parameter.getAnnotations()) {
-            if (annotation instanceof NotNull || annotation instanceof NonNull) {
+            // by name: lombok is compile-only and javax/jakarta validation may be absent at runtime
+            String n = annotation.annotationType().getSimpleName();
+            if (n.equals("NotNull") || n.equals("NonNull") || n.equals("NotBlank") || n.equals("NotEmpty")) {
                 return true;
             }
+            if (n.equals("Nullable")) {
+                return false;
+            }
         }
-        return false;
+        return springAiTool;
     }
 
     private static boolean isPrimitiveOrWrapper(Class<?> clazz) {

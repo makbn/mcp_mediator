@@ -17,12 +17,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <spring.version>6.2.6</spring.version>
-        <spring.boot.version>3.4.4</spring.boot.version>
-        <spring-ai.version>1.0.0</spring-ai.version>
+        <spring.boot.version>4.2.0-RC2</spring.boot.version>
+        <networknt-json-schema-validator.version>2.0.4</networknt-json-schema-validator.version>
+        <mcp-annotations.version>0.9.0</mcp-annotations.version>
+        <spring-ai.version>2.1.0-RC2</spring-ai.version>
         <slf4j.version>2.0.17</slf4j.version>
         <lombok.version>1.18.38</lombok.version>
-        <mcp-bom.version>2.0.1</mcp-bom.version>
+        <mcp-bom.version>2.2.0</mcp-bom.version>
         <jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
         <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
         <httpclient5.version>5.4.3</httpclient5.version>
@@ -57,13 +58,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-framework-bom</artifactId>
-                <version>${spring.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
                 <groupId>io.modelcontextprotocol.sdk</groupId>
                 <artifactId>mcp-bom</artifactId>
                 <version>${mcp-bom.version}</version>
@@ -85,6 +79,22 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- MCP SDK (mcp-json-jackson2) needs the Jackson 2 flavour; Spring Boot 4 manages the Jackson 3 one -->
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>${networknt-json-schema-validator.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-mcp-annotations</artifactId>
+                <version>${spring-ai.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springaicommunity</groupId>
+                <artifactId>mcp-annotations</artifactId>
+                <version>${mcp-annotations.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>

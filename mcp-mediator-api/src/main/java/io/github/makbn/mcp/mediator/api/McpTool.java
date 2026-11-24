@@ -53,15 +53,31 @@ public @interface McpTool {
         boolean openWorldHint() default false;
     }
 
+    /** @return icons advertised for the tool. */
+    McpIcon[] icons() default {};
+
+    /** @return client capabilities required to call the tool. */
+    McpClientCapability[] requiredCapabilities() default {};
+
     /**
      * @return Unique identifier for the tool.
      */
     String name() default "";
 
     /**
+     * @return Human-readable title (MCP {@code title}).
+     */
+    String title() default "";
+
+    /**
      * @return Human-readable description.
      */
     String description() default "";
+
+    /**
+     * @return whether a JSON output schema should be generated from the method return type.
+     */
+    boolean generateOutputSchema() default false;
 
     /**
      * @return JSON Schema for the tool's parameters.

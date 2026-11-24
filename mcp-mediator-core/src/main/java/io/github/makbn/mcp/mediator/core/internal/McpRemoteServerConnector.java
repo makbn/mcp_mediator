@@ -1,5 +1,6 @@
 package io.github.makbn.mcp.mediator.core.internal;
 
+import io.github.makbn.mcp.mediator.core.McpClientHandlers;
 import io.github.makbn.mcp.mediator.api.McpMediatorException;
 import io.github.makbn.mcp.mediator.api.McpTransportType;
 import io.github.makbn.mcp.mediator.api.feature.McpRoots;
@@ -61,11 +62,16 @@ public class McpRemoteServerConnector {
     @NonNull
     private synchronized McpSyncClient initializeConnection() {
         try {
-            McpSyncClient client = McpClient.sync(createTransportType())
+            McpClientHandlers handlers = McpClientHandlers.scan(
+                    java.util.Objects.requireNonNullElse(request.getRemoteServer().getClientHandlers(), java.util.List.of()),
+                    request.getRemoteServer().getName());
+            McpClient.SyncSpec spec = McpClient.sync(createTransportType());
+            handlers.applyTo(spec);
+            McpSyncClient client = spec
                     .clientInfo(new McpSchema.Implementation(request.getParams().getClientName(),
                             request.getParams().getClientVersion()))
                     .requestTimeout(request.getRemoteServer().getRemoteServerTimeout())
-                    .capabilities(createCapabilities())
+                    .capabilities(createCapabilities(handlers))
                     .loggingConsumer(loggingMessageNotification ->
                             log.debug("Server log received: {}", loggingMessageNotification))
                     .build();
@@ -86,7 +92,7 @@ public class McpRemoteServerConnector {
      * @return a configured {@link McpSchema.ClientCapabilities} object
      */
     @NonNull
-    private McpSchema.ClientCapabilities createCapabilities() {
+    private McpSchema.ClientCapabilities createCapabilities(McpClientHandlers handlers) {
         McpSchema.ClientCapabilities.Builder capabilities = McpSchema.ClientCapabilities.builder();
         request.getParams().getCapabilities()
                 .forEach(capability -> {
@@ -97,6 +103,12 @@ public class McpRemoteServerConnector {
                     }
                 });
 
+        if (handlers.has("SAMPLING")) {
+            capabilities.sampling();
+        }
+        if (handlers.has("ELICITATION")) {
+            capabilities.elicitation();
+        }
         return capabilities.build();
     }
 

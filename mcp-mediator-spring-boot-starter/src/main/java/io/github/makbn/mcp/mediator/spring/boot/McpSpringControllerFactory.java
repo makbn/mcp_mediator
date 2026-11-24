@@ -5,6 +5,7 @@ import io.github.makbn.mcp.mediator.api.*;
 import io.github.makbn.mcp.mediator.core.McpServiceFactory.McpServiceRequest;
 import io.github.makbn.mcp.mediator.core.McpServiceFactory.McpServiceRequestHandler;
 import io.github.makbn.mcp.mediator.core.adaper.McpMethodAdapter;
+import io.github.makbn.mcp.mediator.core.util.McpUtils;
 import io.github.makbn.mcp.mediator.core.internal.McpMethodArgumentResolver;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.ClassFileVersion;
@@ -42,12 +43,14 @@ public class McpSpringControllerFactory {
         return new McpServiceRequestHandler() {
             private static final Logger log = LoggerFactory.getLogger("McpSpringControllerRequestHandler");
             private Map<? extends McpServiceRequest, ControllerMethodContext> adapterMap;
+            private ObjectMapper objectMapper;
 
             record ControllerMethodContext(McpMethodAdapter adapter, HandlerMethod handlerMethod) {}
 
             @Override
             public void initialize(Object[] args) {
                 ObjectMapper mapper = getObjectMapper(args);
+                this.objectMapper = mapper;
                 
                 this.adapterMap = handlerMethods.entrySet().stream()
                         .map(entry -> {
@@ -70,13 +73,13 @@ public class McpSpringControllerFactory {
                 McpMethodAdapter adapter = context.adapter();
 
                 Object[] parameters = McpMethodArgumentResolver.resolveArguments(
-                        adapter.getSourceTool(), mcpServiceRequest);
+                        adapter.getSourceTool(), mcpServiceRequest, objectMapper);
                 try {
                     Object bean = context.handlerMethod().getBean();
                     if (bean instanceof String) {
                         throw new McpMediatorException("Bean is not resolved: " + bean);
                     }
-                    return adapter.getSourceTool().invoke(bean, parameters);
+                    return McpUtils.awaitIfReactive(adapter.getSourceTool().invoke(bean, parameters));
                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                     throw new McpMediatorException(generateMessage(e, adapter), e);
                 }
@@ -111,7 +114,7 @@ public class McpSpringControllerFactory {
                 McpServiceRequest request;
                 try (DynamicType.Unloaded<McpServiceRequest> unloaded = new ByteBuddy(ClassFileVersion.JAVA_V21)
                         .subclass(McpServiceRequest.class)
-                        .name("generated." + adapter.getMethod() + "_Request")
+                        .name("generated." + adapter.getMethod() + "_Request" + McpUtils.nextRequestClassId())
                         .make()) {
                     Class<? extends McpServiceRequest> requestClass = unloaded.load(getClass().getClassLoader(),
                                     ClassLoadingStrategy.Default.INJECTION)

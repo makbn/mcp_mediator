@@ -3,6 +3,8 @@ package io.github.makbn.mcp.mediator.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.makbn.mcp.mediator.api.*;
 import io.github.makbn.mcp.mediator.core.adaper.McpAdapterFactory;
+import io.github.makbn.mcp.mediator.core.util.McpAnnotations;
+import io.github.makbn.mcp.mediator.core.internal.McpMethodSchemaGenerator;
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorConfigurationBuilder;
 import io.github.makbn.mcp.mediator.core.configuration.McpMediatorDefaultConfiguration;
 import io.github.makbn.mcp.mediator.core.internal.McpRequestExecutor;
@@ -51,10 +53,18 @@ public class DefaultMcpMediator implements McpMediator {
     McpMediatorDefaultConfiguration configuration;
     AtomicBoolean initialized = new AtomicBoolean(false);
 
+    List<McpFeatureScanner.Features> pendingFeatures = Collections.synchronizedList(new ArrayList<>());
+
     @NonFinal
     ExecutorService executorService;
     @NonFinal
     McpSyncServer mcpSyncServer;
+    @NonFinal
+    io.modelcontextprotocol.server.McpStatelessSyncServer statelessServer;
+    @NonFinal
+    Object transportProvider;
+    List<Object> modernBeans = Collections.synchronizedList(new ArrayList<>());
+    ModernDelegatingServlet modernServlet = new ModernDelegatingServlet();
 
     public DefaultMcpMediator() {
         this(McpMediatorConfigurationBuilder.builder().createDefault().build());
@@ -82,6 +92,112 @@ public class DefaultMcpMediator implements McpMediator {
         }
     }
 
+    /** Mounted before initialize(); forwards to the modern server once it is built. */
+    private static final class ModernDelegatingServlet extends jakarta.servlet.http.HttpServlet {
+        private volatile jakarta.servlet.http.HttpServlet delegate;
+
+        @Override
+        protected void service(jakarta.servlet.http.HttpServletRequest req, jakarta.servlet.http.HttpServletResponse resp)
+                throws jakarta.servlet.ServletException, java.io.IOException {
+            jakarta.servlet.http.HttpServlet d = delegate;
+            if (d == null) {
+                resp.sendError(503, "MCP mediator not initialized");
+            } else {
+                d.service(req, resp);
+            }
+        }
+    }
+
+    @Override
+    public void registerBean(@NonNull Object bean) {
+        if (configuration.getTransportType() == io.github.makbn.mcp.mediator.api.McpTransportType.MODERN_HTTP) {
+            modernBeans.add(bean);
+            return;
+        }
+        if (McpServiceFactory.hasTools(bean)) {
+            registerHandler(McpServiceFactory.create(bean).build());
+        }
+        McpFeatureScanner.Features features = McpFeatureScanner.scan(bean, configuration.getSerializer());
+        if (features.isEmpty()) {
+            return;
+        }
+        synchronized (pendingFeatures) {
+            if (!initialized.get() && mcpSyncServer == null && statelessServer == null) {
+                pendingFeatures.add(features);
+                return;
+            }
+        }
+        features.resources().forEach(this::serverAddResource);
+        features.resourceTemplates().forEach(this::serverAddResourceTemplate);
+        features.prompts().forEach(this::serverAddPrompt);
+        if (!features.completions().isEmpty()) {
+            log.warn("Completions registered after initialize() are ignored; register the bean before initialize()");
+        }
+        if (mcpSyncServer != null) {
+            mcpSyncServer.notifyResourcesListChanged();
+            mcpSyncServer.notifyPromptsListChanged();
+        }
+    }
+
+    // ---- stateful / stateless server dispatch ------------------------------------------------------------------
+
+    private void serverAddTool(McpServerFeatures.SyncToolSpecification t) {
+        if (statelessServer != null) {
+            statelessServer.addTool(new io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncToolSpecification(
+                    t.tool(), (ctx, req) -> t.callHandler().apply(null, req)));
+        } else {
+            mcpSyncServer.addTool(t);
+        }
+    }
+
+    private void serverAddResource(McpServerFeatures.SyncResourceSpecification r) {
+        if (statelessServer != null) {
+            statelessServer.addResource(statelessResource(r));
+        } else {
+            mcpSyncServer.addResource(r);
+        }
+    }
+
+    private void serverAddResourceTemplate(McpServerFeatures.SyncResourceTemplateSpecification r) {
+        if (statelessServer != null) {
+            statelessServer.addResourceTemplate(statelessTemplate(r));
+        } else {
+            mcpSyncServer.addResourceTemplate(r);
+        }
+    }
+
+    private void serverAddPrompt(McpServerFeatures.SyncPromptSpecification p) {
+        if (statelessServer != null) {
+            statelessServer.addPrompt(statelessPrompt(p));
+        } else {
+            mcpSyncServer.addPrompt(p);
+        }
+    }
+
+    private static io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncResourceSpecification statelessResource(
+            McpServerFeatures.SyncResourceSpecification r) {
+        return new io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncResourceSpecification(
+                r.resource(), (ctx, req) -> r.readHandler().apply(null, req));
+    }
+
+    private static io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncResourceTemplateSpecification statelessTemplate(
+            McpServerFeatures.SyncResourceTemplateSpecification r) {
+        return new io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncResourceTemplateSpecification(
+                r.resourceTemplate(), (ctx, req) -> r.readHandler().apply(null, req));
+    }
+
+    private static io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncPromptSpecification statelessPrompt(
+            McpServerFeatures.SyncPromptSpecification p) {
+        return new io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncPromptSpecification(
+                p.prompt(), (ctx, req) -> p.promptHandler().apply(null, req));
+    }
+
+    private static io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncCompletionSpecification statelessCompletion(
+            McpServerFeatures.SyncCompletionSpecification c) {
+        return new io.modelcontextprotocol.server.McpStatelessServerFeatures.SyncCompletionSpecification(
+                c.referenceKey(), (ctx, req) -> c.completionHandler().apply(null, req));
+    }
+
     /**
      * Initializes the mediator, creating the internal MCP server, and registering all known tools.
      *
@@ -92,13 +208,47 @@ public class DefaultMcpMediator implements McpMediator {
         log.info("Initializing MCP Mediator");
         try {
             executorService = Executors.newCachedThreadPool();
-            McpServerTransportProvider stdioServerTransportProvider = getMcpServerTransportProvider();
-            mcpSyncServer = McpServer.sync(stdioServerTransportProvider)
-                    .serverInfo(configuration.getServerName(), configuration.getServerVersion())
-                    .capabilities(McpSchema.ServerCapabilities.builder()
-                            .tools(true)
-                            .build())
-                    .build();
+            if (configuration.getTransportType() == io.github.makbn.mcp.mediator.api.McpTransportType.MODERN_HTTP) {
+                McpModernServer modern = new McpModernServer(new ArrayList<>(modernBeans), configuration.getSerializer(),
+                        configuration.getServerName(), configuration.getServerVersion(), "/mcp");
+                jakarta.servlet.http.HttpServlet servlet = modern.servlet();
+                servlet.init(new jakarta.servlet.ServletConfig() {
+                    public String getServletName() { return "mcp-modern"; }
+                    public jakarta.servlet.ServletContext getServletContext() { return null; }
+                    public String getInitParameter(String name) { return null; }
+                    public java.util.Enumeration<String> getInitParameterNames() { return Collections.emptyEnumeration(); }
+                });
+                modernServlet.delegate = servlet;
+                initialized.set(true);
+                return;
+            }
+            Object provider = getTransportProvider();
+            if (provider instanceof io.modelcontextprotocol.spec.McpStatelessServerTransport stateless) {
+                initializeStateless(stateless);
+                delegate();
+                initialized.set(true);
+                return;
+            }
+            McpServer.SyncSpecification<?> spec = provider instanceof io.modelcontextprotocol.spec.McpStreamableServerTransportProvider streamable
+                    ? McpServer.sync(streamable)
+                    : McpServer.sync((McpServerTransportProvider) provider);
+            synchronized (pendingFeatures) {
+                spec.serverInfo(configuration.getServerName(), configuration.getServerVersion());
+                spec.capabilities(McpSchema.ServerCapabilities.builder()
+                        .tools(true)
+                        .resources(false, true)
+                        .prompts(true)
+                        .completions()
+                        .logging()
+                        .build());
+                spec.resources(pendingFeatures.stream().flatMap(f -> f.resources().stream()).toList());
+                spec.prompts(pendingFeatures.stream().flatMap(f -> f.prompts().stream()).toList());
+                spec.completions(pendingFeatures.stream().flatMap(f -> f.completions().stream()).toList());
+                mcpSyncServer = spec instanceof McpServer.StreamableSyncSpecification st ? st.build()
+                        : ((McpServer.SingleSessionSyncSpecification) spec).build();
+                pendingFeatures.forEach(f -> f.resourceTemplates().forEach(mcpSyncServer::addResourceTemplate));
+                pendingFeatures.clear();
+            }
 
             delegate();
             initialized.set(true);
@@ -111,7 +261,30 @@ public class DefaultMcpMediator implements McpMediator {
         }
     }
 
+    private void initializeStateless(io.modelcontextprotocol.spec.McpStatelessServerTransport transport) {
+        synchronized (pendingFeatures) {
+            var spec = McpServer.sync(transport)
+                    .serverInfo(configuration.getServerName(), configuration.getServerVersion())
+                    .capabilities(McpSchema.ServerCapabilities.builder()
+                            .tools(true).resources(false, true).prompts(true).completions().build());
+            spec.resources(pendingFeatures.stream().flatMap(f -> f.resources().stream())
+                    .map(DefaultMcpMediator::statelessResource).toList());
+            spec.prompts(pendingFeatures.stream().flatMap(f -> f.prompts().stream())
+                    .map(DefaultMcpMediator::statelessPrompt).toList());
+            spec.completions(pendingFeatures.stream().flatMap(f -> f.completions().stream())
+                    .map(DefaultMcpMediator::statelessCompletion).toList());
+            statelessServer = spec.build();
+            pendingFeatures.forEach(f -> f.resourceTemplates()
+                    .forEach(t -> statelessServer.addResourceTemplate(statelessTemplate(t))));
+            pendingFeatures.clear();
+        }
+    }
+
     private synchronized void closeServer() {
+        if (statelessServer != null) {
+            statelessServer.closeGracefully();
+            statelessServer = null;
+        }
         if (mcpSyncServer != null) {
             mcpSyncServer.closeGracefully();
             mcpSyncServer = null;
@@ -153,6 +326,7 @@ public class DefaultMcpMediator implements McpMediator {
     @SuppressWarnings("unchecked")
     public <T extends McpMediatorRequest<R>, R> R execute(T request) throws McpMediatorException {
         final McpExecutionContext parentContext = McpExecutionContext.get();
+        final McpCallContext callContext = McpCallContext.get();
         final McpMediatorRequestHandler<T, R> handler = (McpMediatorRequestHandler<T, R>) findHandler(request);
 
         McpRequestExecutor<R> executor = new McpRequestExecutor<>() {
@@ -162,6 +336,7 @@ public class DefaultMcpMediator implements McpMediator {
                 Span span = tracer.spanBuilder("mcp_handler_execute").startSpan();
                 McpExecutionContext.set(MinimalMcpMediator.of(DefaultMcpMediator.this),
                         configuration.getSerializer(), parentContext);
+                McpCallContext.set(callContext);
 
                 validateHandler(handler, request);
                 try (io.opentelemetry.context.Scope scope = span.makeCurrent()) {
@@ -176,6 +351,7 @@ public class DefaultMcpMediator implements McpMediator {
                     throw new McpMediatorException(e.getMessage(), e);
                 } finally {
                     McpExecutionContext.remove();
+                    McpCallContext.set(null);
                     span.end();
                 }
             }
@@ -213,12 +389,12 @@ public class DefaultMcpMediator implements McpMediator {
             McpServerFeatures.SyncToolSpecification tool =
                     createMcpToolSpecification(adapter, clientPassedArgs ->
                             executeClientCall(clientPassedArgs, requestType));
-            mcpSyncServer.addTool(tool);
+            serverAddTool(tool);
         });
 
-        if (notifyClients) {
+        if (notifyClients && mcpSyncServer != null) {
             mcpSyncServer.notifyToolsListChanged();
-            log.debug("All tools registered successfully {}", mcpSyncServer);
+            log.debug("All tools registered successfully");
         }
     }
 
@@ -236,6 +412,18 @@ public class DefaultMcpMediator implements McpMediator {
                 (mcpSyncServerExchange, callToolRequest) -> {
                     Tracer tracer = configuration.getOpenTelemetry().getTracer("mcp-mediator-core");
                     Span span = tracer.spanBuilder("mcp_tool_execution").startSpan();
+                    McpCallContext.set(McpCallContext.of(mcpSyncServerExchange, callToolRequest));
+                    if (adapter.getSourceTool() instanceof java.lang.reflect.Method toolMethod) {
+                        try {
+                            McpAnnotations.find(toolMethod, "McpTool")
+                                    .ifPresent(a -> McpFeatureScanner.requireCapabilities(a, mcpSyncServerExchange));
+                        } catch (McpMediatorException missing) {
+                            McpCallContext.set(null);
+                            span.end();
+                            return McpSchema.CallToolResult.builder()
+                                    .content(List.of(new McpSchema.TextContent(missing.getMessage()))).isError(true).build();
+                        }
+                    }
                     try (io.opentelemetry.context.Scope scope = span.makeCurrent()) {
                         span.setAttribute("mcp.tool.name", callToolRequest.name());
                         McpSchema.CallToolResult result = functionToCall.apply(callToolRequest);
@@ -257,26 +445,48 @@ public class DefaultMcpMediator implements McpMediator {
                                 log.error("Exception handler failed", ex);
                             }
                         }
-                        mcpSyncServerExchange.loggingNotification(new McpSchema.LoggingMessageNotification(McpSchema.LoggingLevel.DEBUG, e.getMessage(), e.getStackTrace().toString()));
+                        if (mcpSyncServerExchange != null) mcpSyncServerExchange.loggingNotification(new McpSchema.LoggingMessageNotification(McpSchema.LoggingLevel.DEBUG, e.getMessage(), e.getStackTrace().toString()));
                         return McpSchema.CallToolResult.builder().content(List.of(new McpSchema.TextContent(errorMessage))).isError(true).build();
                     } finally {
+                        McpCallContext.set(null);
                         span.end();
                     }
                 });
     }
 
-    private McpServerTransportProvider getMcpServerTransportProvider() {
-        return switch (configuration.getTransportType()) {
-            case STDIO -> new StdioServerTransportProvider(new JacksonMcpJsonMapper(configuration.getSerializer()),
-                    configuration.getStdioInputStream(),
-                    configuration.getStdioOutputStream());
-            case SSE -> HttpServletSseServerTransportProvider.builder()
-                    .jsonMapper(new JacksonMcpJsonMapper(configuration.getSerializer()))
-                    .baseUrl(configuration.getServerAddress())
-                    .build();
-        };
+    private synchronized Object getTransportProvider() {
+        if (transportProvider == null) {
+            McpJsonMapper json = new JacksonMcpJsonMapper(configuration.getSerializer());
+            transportProvider = switch (configuration.getTransportType()) {
+                case STDIO -> new StdioServerTransportProvider(json,
+                        configuration.getStdioInputStream(), configuration.getStdioOutputStream());
+                case SSE -> HttpServletSseServerTransportProvider.builder()
+                        .jsonMapper(json).baseUrl(configuration.getServerAddress() == null ? "" : configuration.getServerAddress())
+                        .sseEndpoint("/sse").messageEndpoint("/mcp/message").build();
+                case MODERN_HTTP -> new Object(); // served by McpModernServer, see initialize()
+                case STATELESS_HTTP -> io.modelcontextprotocol.server.transport.HttpServletStatelessServerTransport
+                        .builder().jsonMapper(json).messageEndpoint("/mcp").build();
+                case STREAMABLE_HTTP -> io.modelcontextprotocol.server.transport.HttpServletStreamableServerTransportProvider
+                        .builder().jsonMapper(json).mcpEndpoint("/mcp").build();
+            };
+        }
+        return transportProvider;
     }
 
+    /**
+     * The servlet to mount when the transport is {@code SSE} or {@code STREAMABLE_HTTP} (streamable endpoint: {@code /mcp}).
+     *
+     * @throws McpMediatorException for the STDIO transport
+     */
+    public jakarta.servlet.http.HttpServlet getHttpServlet() {
+        if (configuration.getTransportType() == io.github.makbn.mcp.mediator.api.McpTransportType.MODERN_HTTP) {
+            return modernServlet;
+        }
+        if (getTransportProvider() instanceof jakarta.servlet.http.HttpServlet servlet) {
+            return servlet;
+        }
+        throw new McpMediatorException("Transport " + configuration.getTransportType() + " is not HTTP based");
+    }
 
     /**
      * Finds a handler that can process the given request.
@@ -293,9 +503,30 @@ public class DefaultMcpMediator implements McpMediator {
     @NonNull
     private McpSchema.Tool defineMcpTool(@NonNull McpToolAdapter<?> adapter) {
         McpJsonMapper jsonMapper = new JacksonMcpJsonMapper(configuration.getSerializer());
-        return McpSchema.Tool.builder(adapter.getMethod(), jsonMapper, adapter.getSchema())
-                .description(adapter.getDescription())
-                .build();
+        McpSchema.Tool.Builder builder = McpSchema.Tool.builder(adapter.getMethod(), jsonMapper, adapter.getSchema())
+                .description(adapter.getDescription());
+        if (adapter.getSourceTool() instanceof java.lang.reflect.Method method) {
+            McpAnnotations.find(method, "McpTool").ifPresent(a -> {
+                String title = McpAnnotations.str(a, "title", null);
+                McpAnnotations.nested(a, "annotations").ifPresent(h -> builder.annotations(
+                        new McpSchema.ToolAnnotations(McpAnnotations.str(h, "title", title),
+                                McpAnnotations.bool(h, "readOnlyHint", false),
+                                McpAnnotations.bool(h, "destructiveHint", false),
+                                McpAnnotations.bool(h, "idempotentHint", false),
+                                McpAnnotations.bool(h, "openWorldHint", false), null)));
+                builder.title(title);
+                builder.icons(McpFeatureScanner.icons(a));
+                builder.meta(McpAnnotations.meta(a));
+                if (McpAnnotations.bool(a, "generateOutputSchema", false)) {
+                    String out = McpMethodSchemaGenerator.of(configuration.getSerializer())
+                            .generateOutputSchemaForMethod(method);
+                    if (out != null) {
+                        builder.outputSchema(jsonMapper, out);
+                    }
+                }
+            });
+        }
+        return builder.build();
     }
 
     private McpSchema.CallToolResult executeClientCall(
@@ -315,10 +546,16 @@ public class DefaultMcpMediator implements McpMediator {
                     .convertValue(mcpClientRequest.arguments(), mcpMediatorRequestType);
             Object mcpMediatorResult = execute(mcpMediatorRequest);
             span.setStatus(StatusCode.OK);
-            return McpSchema.CallToolResult.builder()
+            McpSchema.CallToolResult.Builder ok = McpSchema.CallToolResult.builder()
                     .content(java.util.List.of(new McpSchema.TextContent(serialize(mcpMediatorResult))))
-                    .isError(false)
-                    .build();
+                    .isError(false);
+            if (mcpMediatorResult != null && !(mcpMediatorResult instanceof CharSequence)
+                    && !(mcpMediatorResult instanceof Number) && !(mcpMediatorResult instanceof Boolean)
+                    && !(mcpMediatorResult instanceof java.util.Collection) && !mcpMediatorResult.getClass().isArray()
+                    && !mcpMediatorResult.getClass().isEnum()) {
+                ok.structuredContent(configuration.getSerializer().convertValue(mcpMediatorResult, java.util.Map.class));
+            }
+            return ok.build();
         } catch (Exception e) {
             log.error("Failed to execute tool call", e);
             span.recordException(e);

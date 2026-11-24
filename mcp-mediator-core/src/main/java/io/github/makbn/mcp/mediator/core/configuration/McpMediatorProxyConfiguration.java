@@ -54,6 +54,11 @@ public final class McpMediatorProxyConfiguration extends McpMediatorDefaultConfi
         Duration remoteServerTimeout = Duration.ofSeconds(TIMEOUT);
         @NonFinal
         ObjectMapper serializer;
+        /** Objects with client-side handler methods (sampling, elicitation, logging, progress, list-changed). */
+        @Singular
+        List<Object> clientHandlers;
+        /** Connection name; client handlers with {@code clients = "name"} only apply to the matching connection. */
+        String name;
 
         McpMediatorRemoteMcpServerConfiguration copy() {
             return McpMediatorRemoteMcpServerConfiguration.of(
@@ -66,7 +71,9 @@ public final class McpMediatorProxyConfiguration extends McpMediatorDefaultConfi
                             ? Map.copyOf(this.getRemoteServerEnvs())
                             : null,
                     this.getRemoteServerTimeout(),
-                    this.getSerializer()
+                    this.getSerializer(),
+                    this.getClientHandlers() != null ? new ArrayList<>(this.getClientHandlers()) : null,
+                    this.getName()
             );
         }
 

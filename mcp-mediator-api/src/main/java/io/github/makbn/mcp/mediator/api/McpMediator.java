@@ -37,4 +37,15 @@ public interface McpMediator {
      * @throws McpMediatorException if execution fails
      */
     <T extends McpMediatorRequest<R>,  R> R execute(T request) throws McpMediatorException;
-} 
+
+    /**
+     * Registers an annotated object: its {@code @McpTool}, {@code @McpResource}, {@code @McpPrompt} and
+     * {@code @McpComplete} methods (the mediator's own annotations or Spring AI's) become MCP features.
+     * {@code @McpService} on the class is optional. Completions must be registered before {@link #initialize()}.
+     *
+     * @param bean the object holding annotated methods
+     */
+    default void registerBean(@Nonnull Object bean) {
+        throw new UnsupportedOperationException("registerBean is not supported by " + getClass().getName());
+    }
+}
